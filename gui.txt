@@ -1,0 +1,882 @@
+import javax.swing.*;
+import javax.swing.border.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import java.util.*;
+import java.util.List;
+
+public class StudentHousingSystemGUI {
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            new MainFrame().setVisible(true);
+        });
+    }
+}
+
+class MainFrame extends JFrame {
+    private CardLayout cardLayout;
+    private JPanel mainPanel;
+    private UserAuthenticator authenticator;
+    private List<Accommodation> accommodations;
+    private String currentUser;
+    
+    // GUI Components
+    private LoginPanel loginPanel;
+    private RegistrationPanel registrationPanel;
+    private DashboardPanel dashboardPanel;
+    
+    public MainFrame() {
+        super("Student Housing Management System");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(1000, 700);
+        setLocationRelativeTo(null);
+        
+        authenticator = new UserAuthenticator();
+        accommodations = new ArrayList<>();
+        currentUser = null;
+        
+        initComponents();
+        loadAccommodations("oops_dataset2.csv");
+    }
+    
+    private void initComponents() {
+        cardLayout = new CardLayout();
+        mainPanel = new JPanel(cardLayout);
+        
+        // Create panels
+        loginPanel = new LoginPanel(this);
+        registrationPanel = new RegistrationPanel(this);
+        dashboardPanel = new DashboardPanel(this);
+        
+        // Add panels to card layout
+        mainPanel.add(loginPanel, "LOGIN");
+        mainPanel.add(registrationPanel, "REGISTER");
+        mainPanel.add(dashboardPanel, "DASHBOARD");
+        
+        add(mainPanel);
+        showLoginPanel();
+    }
+    
+    private void loadAccommodations(String filename) {
+        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+            String line;
+            boolean firstLine = true;
+            
+            while ((line = br.readLine()) != null) {
+                if (firstLine) {
+                    firstLine = false;
+                    continue;
+                }
+                
+                String[] values = line.split(",");
+                if (values.length >= 16) {
+                    Accommodation acc = createAccommodationFromCSV(values);
+                    if (acc != null) {
+                        accommodations.add(acc);
+                    }
+                }
+            }
+            dashboardPanel.updateAccommodationList(accommodations);
+        } catch (IOException | NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Error loading data: " + e.getMessage(), 
+                                        "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private Accommodation createAccommodationFromCSV(String[] values) {
+        String type = values[1].trim();
+        String name = values[0].trim();
+        String location = values[2].trim();
+        int rent = Integer.parseInt(values[3].trim());
+        boolean wifi = values[4].trim().equalsIgnoreCase("Yes");
+        boolean meals = values[5].trim().equalsIgnoreCase("Yes");
+        boolean security = values[6].trim().equalsIgnoreCase("Yes");
+        double rating = Double.parseDouble(values[7].trim());
+        int roomSharing = Integer.parseInt(values[8].trim());
+        boolean laundry = values[9].trim().equalsIgnoreCase("Yes");
+        boolean mess = values[10].trim().equalsIgnoreCase("Yes");
+        boolean ac = values[11].trim().equalsIgnoreCase("Yes");
+        boolean geyser = values[12].trim().equalsIgnoreCase("Yes");
+        boolean kitchen = values[13].trim().equalsIgnoreCase("Yes");
+        String curfew = values[14].trim();
+        String gender = values[15].trim();
+        
+        switch (type.toUpperCase()) {
+            case "HOSTEL":
+                return new Hostel(name, location, rent, wifi, meals, security, rating, 
+                                roomSharing, laundry, mess, ac, geyser, kitchen, 
+                                curfew, gender, false, false);
+            case "PG":
+                return new PG(name, location, rent, wifi, meals, security, rating, 
+                            roomSharing, laundry, mess, ac, geyser, kitchen, 
+                            curfew, gender, false, false);
+            case "FLAT":
+                return new Flat(name, location, rent, wifi, meals, security, rating, 
+                              laundry, mess, ac, geyser, kitchen, gender, 
+                              false, false);
+            default:
+                return new Accommodation(name, type, location, rent, wifi, meals, 
+                                       security, rating, roomSharing, laundry, 
+                                       mess, ac, geyser, kitchen, curfew, gender);
+        }
+    }
+    
+    public void showLoginPanel() {
+        cardLayout.show(mainPanel, "LOGIN");
+    }
+    
+    public void showRegistrationPanel() {
+        cardLayout.show(mainPanel, "REGISTER");
+    }
+    
+    public void showDashboardPanel(String username) {
+        currentUser = username;
+        dashboardPanel.setWelcomeMessage(username);
+        cardLayout.show(mainPanel, "DASHBOARD");
+    }
+    
+    public boolean authenticateUser(String username, String password) {
+        return authenticator.login(username, password);
+    }
+    
+    public void registerUser(String username, String password) {
+        authenticator.register(username, password);
+    }
+    
+    public List<Accommodation> getAccommodations() {
+        return accommodations;
+    }
+    
+    public void logout() {
+        currentUser = null;
+        showLoginPanel();
+    }
+}
+
+class LoginPanel extends JPanel {
+    private MainFrame mainFrame;
+    private JTextField usernameField;
+    private JPasswordField passwordField;
+    
+    public LoginPanel(MainFrame frame) {
+        this.mainFrame = frame;
+        initUI();
+    }
+    
+    private void initUI() {
+        setLayout(new BorderLayout(10, 10));
+        setBorder(new EmptyBorder(20, 20, 20, 20));
+        setBackground(new Color(240, 248, 255));
+        
+        // Title
+        JLabel titleLabel = new JLabel("Student Housing System", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        titleLabel.setForeground(new Color(70, 130, 180));
+        add(titleLabel, BorderLayout.NORTH);
+        
+        // Form panel
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(new Color(240, 248, 255));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        
+        JLabel loginLabel = new JLabel("Login to your account", SwingConstants.CENTER);
+        loginLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        loginLabel.setForeground(new Color(70, 130, 180));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        formPanel.add(loginLabel, gbc);
+        
+        gbc.gridwidth = 1;
+        gbc.gridy++;
+        formPanel.add(new JLabel("Username:"), gbc);
+        
+        gbc.gridx++;
+        usernameField = new JTextField(20);
+        usernameField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        formPanel.add(usernameField, gbc);
+        
+        gbc.gridx = 0;
+        gbc.gridy++;
+        formPanel.add(new JLabel("Password:"), gbc);
+        
+        gbc.gridx++;
+        passwordField = new JPasswordField(20);
+        passwordField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        formPanel.add(passwordField, gbc);
+        
+        // Button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        buttonPanel.setBackground(new Color(240, 248, 255));
+        
+        JButton loginButton = createStyledButton("Login", new Color(70, 130, 180));
+        loginButton.addActionListener(e -> attemptLogin());
+        
+        JButton registerButton = createStyledButton("Register", new Color(100, 149, 237));
+        registerButton.addActionListener(e -> mainFrame.showRegistrationPanel());
+        
+        buttonPanel.add(loginButton);
+        buttonPanel.add(registerButton);
+        
+        // Add components to main panel
+        JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
+        centerPanel.setBackground(new Color(240, 248, 255));
+        centerPanel.add(formPanel, BorderLayout.CENTER);
+        centerPanel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        add(centerPanel, BorderLayout.CENTER);
+        
+        // Add keyboard listener for Enter key
+        passwordField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    attemptLogin();
+                }
+            }
+        });
+    }
+    
+    private JButton createStyledButton(String text, Color color) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        button.setBackground(color);
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        return button;
+    }
+    
+    private void attemptLogin() {
+        String username = usernameField.getText();
+        String password = new String(passwordField.getPassword());
+        
+        if (username.isEmpty() || password.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter both username and password", 
+                                         "Login Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        if (mainFrame.authenticateUser(username, password)) {
+            usernameField.setText("");
+            passwordField.setText("");
+            mainFrame.showDashboardPanel(username);
+        } else {
+            JOptionPane.showMessageDialog(this, "Invalid username or password", 
+                                        "Login Failed", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+}
+
+class RegistrationPanel extends JPanel {
+    private MainFrame mainFrame;
+    private JTextField usernameField;
+    private JPasswordField passwordField;
+    
+    public RegistrationPanel(MainFrame frame) {
+        this.mainFrame = frame;
+        initUI();
+    }
+    
+    private void initUI() {
+        setLayout(new BorderLayout(10, 10));
+        setBorder(new EmptyBorder(20, 20, 20, 20));
+        setBackground(new Color(240, 248, 255));
+        
+        // Title
+        JLabel titleLabel = new JLabel("Create New Account", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        titleLabel.setForeground(new Color(70, 130, 180));
+        add(titleLabel, BorderLayout.NORTH);
+        
+        // Form panel
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(new Color(240, 248, 255));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        formPanel.add(new JLabel("Username:"), gbc);
+        
+        gbc.gridx++;
+        usernameField = new JTextField(20);
+        usernameField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        formPanel.add(usernameField, gbc);
+        
+        gbc.gridx = 0;
+        gbc.gridy++;
+        formPanel.add(new JLabel("Password:"), gbc);
+        
+        gbc.gridx++;
+        passwordField = new JPasswordField(20);
+        passwordField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        formPanel.add(passwordField, gbc);
+        
+        // Button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        buttonPanel.setBackground(new Color(240, 248, 255));
+        
+        JButton registerButton = createStyledButton("Register", new Color(70, 130, 180));
+        registerButton.addActionListener(e -> attemptRegistration());
+        
+        JButton backButton = createStyledButton("Back to Login", new Color(100, 149, 237));
+        backButton.addActionListener(e -> mainFrame.showLoginPanel());
+        
+        buttonPanel.add(registerButton);
+        buttonPanel.add(backButton);
+        
+        // Add components to main panel
+        JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
+        centerPanel.setBackground(new Color(240, 248, 255));
+        centerPanel.add(formPanel, BorderLayout.CENTER);
+        centerPanel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        add(centerPanel, BorderLayout.CENTER);
+    }
+    
+    private JButton createStyledButton(String text, Color color) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        button.setBackground(color);
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        return button;
+    }
+    
+    private void attemptRegistration() {
+        String username = usernameField.getText();
+        String password = new String(passwordField.getPassword());
+        
+        if (username.isEmpty() || password.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter both username and password", 
+                                         "Registration Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        if (password.length() < 6) {
+            JOptionPane.showMessageDialog(this, "Password must be at least 6 characters", 
+                                         "Registration Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        mainFrame.registerUser(username, password);
+        JOptionPane.showMessageDialog(this, "Registration successful! Please login.", 
+                                     "Success", JOptionPane.INFORMATION_MESSAGE);
+        usernameField.setText("");
+        passwordField.setText("");
+        mainFrame.showLoginPanel();
+    }
+}
+
+class DashboardPanel extends JPanel {
+    private MainFrame mainFrame;
+    private JLabel welcomeLabel;
+    private JList<Accommodation> accommodationList;
+    private DefaultListModel<Accommodation> listModel;
+    private JTextArea detailsArea;
+    private JComboBox<String> filterComboBox;
+    
+    public DashboardPanel(MainFrame frame) {
+        this.mainFrame = frame;
+        initUI();
+    }
+    
+    private void initUI() {
+        setLayout(new BorderLayout(10, 10));
+        setBorder(new EmptyBorder(10, 10, 10, 10));
+        setBackground(new Color(240, 248, 255));
+        
+        // Header panel
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(new Color(70, 130, 180));
+        headerPanel.setBorder(new EmptyBorder(10, 15, 10, 15));
+        
+        welcomeLabel = new JLabel("Welcome, ");
+        welcomeLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        welcomeLabel.setForeground(Color.WHITE);
+        
+        JButton logoutButton = createStyledButton("Logout", new Color(220, 20, 60));
+        logoutButton.addActionListener(e -> mainFrame.logout());
+        
+        headerPanel.add(welcomeLabel, BorderLayout.WEST);
+        headerPanel.add(logoutButton, BorderLayout.EAST);
+        
+        // Filter panel
+        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        filterPanel.setBackground(new Color(240, 248, 255));
+        
+        String[] filterOptions = {"All Accommodations", "PG", "Hostel", "Flat", "By Location", 
+                                "By Rent Range", "By Rating", "By Gender"};
+        filterComboBox = new JComboBox<>(filterOptions);
+        filterComboBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        
+        JButton filterButton = createStyledButton("Apply Filter", new Color(70, 130, 180));
+        filterButton.addActionListener(e -> applyFilter());
+        
+        JButton resetButton = createStyledButton("Reset", new Color(100, 149, 237));
+        resetButton.addActionListener(e -> updateAccommodationList(mainFrame.getAccommodations()));
+        
+        filterPanel.add(new JLabel("Filter by:"));
+        filterPanel.add(filterComboBox);
+        filterPanel.add(filterButton);
+        filterPanel.add(resetButton);
+        
+        // Main content panel
+        JPanel contentPanel = new JPanel(new GridLayout(1, 2, 10, 10));
+        contentPanel.setBackground(new Color(240, 248, 255));
+        
+        // Left panel - List of accommodations
+        listModel = new DefaultListModel<>();
+        accommodationList = new JList<>(listModel);
+        accommodationList.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        accommodationList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        accommodationList.setCellRenderer(new AccommodationListRenderer());
+        accommodationList.addListSelectionListener(e -> showAccommodationDetails());
+        
+        JScrollPane listScrollPane = new JScrollPane(accommodationList);
+        listScrollPane.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200)), 
+            "Available Accommodations", TitledBorder.LEFT, TitledBorder.TOP,
+            new Font("Segoe UI", Font.BOLD, 14), new Color(70, 130, 180)));
+        
+        // Right panel - Details
+        detailsArea = new JTextArea();
+        detailsArea.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        detailsArea.setEditable(false);
+        detailsArea.setLineWrap(true);
+        detailsArea.setWrapStyleWord(true);
+        
+        JScrollPane detailsScrollPane = new JScrollPane(detailsArea);
+        detailsScrollPane.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200)), 
+            "Accommodation Details", TitledBorder.LEFT, TitledBorder.TOP,
+            new Font("Segoe UI", Font.BOLD, 14), new Color(70, 130, 180)));
+        
+        contentPanel.add(listScrollPane);
+        contentPanel.add(detailsScrollPane);
+        
+        // Booking button
+        JButton bookButton = createStyledButton("Book Selected Accommodation", new Color(34, 139, 34));
+        bookButton.addActionListener(e -> bookAccommodation());
+        
+        // Add components to main panel
+        add(headerPanel, BorderLayout.NORTH);
+        add(filterPanel, BorderLayout.CENTER);
+        add(contentPanel, BorderLayout.CENTER);
+        add(bookButton, BorderLayout.SOUTH);
+    }
+    
+    private JButton createStyledButton(String text, Color color) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        button.setBackground(color);
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        return button;
+    }
+    
+    public void setWelcomeMessage(String username) {
+        welcomeLabel.setText("Welcome, " + username + "!");
+    }
+    
+    public void updateAccommodationList(List<Accommodation> accommodations) {
+        listModel.clear();
+        for (Accommodation acc : accommodations) {
+            listModel.addElement(acc);
+        }
+    }
+    
+    private void showAccommodationDetails() {
+        Accommodation selected = accommodationList.getSelectedValue();
+        if (selected != null) {
+            detailsArea.setText("");
+            selected.displayDetails(detailsArea);
+        }
+    }
+    
+    private void applyFilter() {
+        String filter = (String) filterComboBox.getSelectedItem();
+        List<Accommodation> filteredList = new ArrayList<>();
+        
+        switch (filter) {
+            case "All Accommodations":
+                filteredList = mainFrame.getAccommodations();
+                break;
+                
+            case "PG":
+            case "Hostel":
+            case "Flat":
+                for (Accommodation acc : mainFrame.getAccommodations()) {
+                    if (acc.getType().equalsIgnoreCase(filter)) {
+                        filteredList.add(acc);
+                    }
+                }
+                break;
+                
+            case "By Location":
+                String[] locations = getUniqueLocations();
+                String location = (String) JOptionPane.showInputDialog(
+                    this, "Select location:", "Filter by Location",
+                    JOptionPane.QUESTION_MESSAGE, null, locations, locations[0]);
+                
+                if (location != null) {
+                    for (Accommodation acc : mainFrame.getAccommodations()) {
+                        if (acc.getLocation().equalsIgnoreCase(location)) {
+                            filteredList.add(acc);
+                        }
+                    }
+                }
+                break;
+                
+            case "By Rent Range":
+                JPanel rentPanel = new JPanel(new GridLayout(2, 2, 5, 5));
+                JTextField minField = new JTextField(10);
+                JTextField maxField = new JTextField(10);
+                
+                rentPanel.add(new JLabel("Minimum Rent:"));
+                rentPanel.add(minField);
+                rentPanel.add(new JLabel("Maximum Rent:"));
+                rentPanel.add(maxField);
+                
+                int result = JOptionPane.showConfirmDialog(
+                    this, rentPanel, "Enter Rent Range", 
+                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+                
+                if (result == JOptionPane.OK_OPTION) {
+                    try {
+                        int min = minField.getText().isEmpty() ? 0 : Integer.parseInt(minField.getText());
+                        int max = maxField.getText().isEmpty() ? Integer.MAX_VALUE : Integer.parseInt(maxField.getText());
+                        
+                        for (Accommodation acc : mainFrame.getAccommodations()) {
+                            if (acc.getRent() >= min && acc.getRent() <= max) {
+                                filteredList.add(acc);
+                            }
+                        }
+                    } catch (NumberFormatException e) {
+                        JOptionPane.showMessageDialog(this, "Please enter valid numbers for rent", 
+                                                    "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+                break;
+                
+            case "By Rating":
+                String ratingStr = JOptionPane.showInputDialog(
+                    this, "Enter minimum rating (1-5):", "Filter by Rating", JOptionPane.QUESTION_MESSAGE);
+                
+                if (ratingStr != null) {
+                    try {
+                        double minRating = Double.parseDouble(ratingStr);
+                        if (minRating < 1 || minRating > 5) {
+                            throw new NumberFormatException();
+                        }
+                        
+                        for (Accommodation acc : mainFrame.getAccommodations()) {
+                            if (acc.getRating() >= minRating) {
+                                filteredList.add(acc);
+                            }
+                        }
+                    } catch (NumberFormatException e) {
+                        JOptionPane.showMessageDialog(this, "Please enter a valid rating between 1 and 5", 
+                                                    "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+                break;
+                
+            case "By Gender":
+                String[] genders = {"Male", "Female", "Unisex"};
+                String gender = (String) JOptionPane.showInputDialog(
+                    this, "Select gender preference:", "Filter by Gender",
+                    JOptionPane.QUESTION_MESSAGE, null, genders, genders[0]);
+                
+                if (gender != null) {
+                    for (Accommodation acc : mainFrame.getAccommodations()) {
+                        if (acc.getGender().equalsIgnoreCase(gender)) {
+                            filteredList.add(acc);
+                        }
+                    }
+                }
+                break;
+        }
+        
+        updateAccommodationList(filteredList);
+    }
+    
+    private String[] getUniqueLocations() {
+        Set<String> locations = new HashSet<>();
+        for (Accommodation acc : mainFrame.getAccommodations()) {
+            locations.add(acc.getLocation());
+        }
+        return locations.toArray(new String[0]);
+    }
+    
+    private void bookAccommodation() {
+        Accommodation selected = accommodationList.getSelectedValue();
+        if (selected == null) {
+            JOptionPane.showMessageDialog(this, "Please select an accommodation first", 
+                                        "No Selection", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        JPanel bookingPanel = new JPanel(new GridLayout(4, 2, 5, 5));
+        JTextField nameField = new JTextField();
+        JTextField contactField = new JTextField();
+        JTextField universityField = new JTextField();
+        
+        bookingPanel.add(new JLabel("Full Name:"));
+        bookingPanel.add(nameField);
+        bookingPanel.add(new JLabel("Contact Number:"));
+        bookingPanel.add(contactField);
+        bookingPanel.add(new JLabel("University:"));
+        bookingPanel.add(universityField);
+        bookingPanel.add(new JLabel("Accommodation:"));
+        bookingPanel.add(new JLabel(selected.getName()));
+        
+        int result = JOptionPane.showConfirmDialog(
+            this, bookingPanel, "Booking Details", 
+            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        
+        if (result == JOptionPane.OK_OPTION) {
+            String name = nameField.getText();
+            String contact = contactField.getText();
+            String university = universityField.getText();
+            
+            if (name.isEmpty() || contact.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Name and contact number are required", 
+                                            "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            String message = "Booking confirmed for " + name + "!\n" +
+                           "Contact: " + contact + "\n" +
+                           "University: " + university + "\n" +
+                           "Accommodation: " + selected.getName() + "\n" +
+                           "Rent: Rs" + selected.getRent() + "\n\n" +
+                           "Please contact the owner to complete the process.";
+            
+            JOptionPane.showMessageDialog(this, message, "Booking Confirmed", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+}
+
+class AccommodationListRenderer extends DefaultListCellRenderer {
+    @Override
+    public Component getListCellRendererComponent(JList<?> list, Object value, int index, 
+                                                boolean isSelected, boolean cellHasFocus) {
+        super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+        
+        if (value instanceof Accommodation) {
+            Accommodation acc = (Accommodation) value;
+            setText(String.format("<html><b>%s</b> (%s)<br>%s - Rs%d - ★%.1f</html>", 
+                                 acc.getName(), acc.getType(), 
+                                 acc.getLocation(), acc.getRent(), acc.getRating()));
+        }
+        
+        return this;
+    }
+}
+
+abstract class HousingProperty {
+    private final String name;
+    
+    public HousingProperty(String name) {
+        this.name = name;
+    }
+    
+    public final String getName() {
+        return name;
+    }
+    
+    public abstract void displayBasicInformation(JTextArea area);
+}
+
+class Accommodation extends HousingProperty {
+    private final String type;
+    private final String location;
+    private final int rent;
+    private final boolean wifi;
+    private final boolean meals;
+    private final boolean security;
+    private final double rating;
+    private final int roomSharing;
+    private final boolean laundry;
+    private final boolean mess;
+    private final boolean ac;
+    private final boolean geyser;
+    private final boolean kitchen;
+    private final String curfew;
+    private final String gender;
+
+    public Accommodation(String name, String type, String location, int rent, boolean wifi, 
+                        boolean meals, boolean security, double rating, int roomSharing, 
+                        boolean laundry, boolean mess, boolean ac, boolean geyser, 
+                        boolean kitchen, String curfew, String gender) {
+        super(name);
+        this.type = type;
+        this.location = location;
+        this.rent = rent;
+        this.wifi = wifi;
+        this.meals = meals;
+        this.security = security;
+        this.rating = rating;
+        this.roomSharing = roomSharing;
+        this.laundry = laundry;
+        this.mess = mess;
+        this.ac = ac;
+        this.geyser = geyser;
+        this.kitchen = kitchen;
+        this.curfew = curfew;
+        this.gender = gender;
+    }
+
+    public String getType() { return type; }
+    public String getLocation() { return location; }
+    public int getRent() { return rent; }
+    public boolean hasWifi() { return wifi; }
+    public boolean hasMeals() { return meals; }
+    public boolean hasSecurity() { return security; }
+    public double getRating() { return rating; }
+    public int getRoomSharing() { return roomSharing; }
+    public boolean hasLaundry() { return laundry; }
+    public boolean hasMess() { return mess; }
+    public boolean hasAC() { return ac; }
+    public boolean hasGeyser() { return geyser; }
+    public boolean hasKitchen() { return kitchen; }
+    public String getCurfew() { return curfew; }
+    public String getGender() { return gender; }
+
+    public void displayBasicInformation(JTextArea area) {
+        area.append("\n--- " + type + " Accommodation ---\n");
+        area.append("Name: " + super.getName() + "\n");
+        area.append("Location: " + location + "\n");
+        area.append("Rent: Rs" + rent + "\n");
+        area.append("Rating: " + rating + "/5\n");
+        area.append("Gender: " + gender + "\n");
+        if (!type.equalsIgnoreCase("Flat")) {
+            area.append("Room Sharing: " + roomSharing + " sharing\n");
+            area.append("Curfew: " + (curfew.equals("None") ? "No curfew" : curfew) + "\n");
+        } else {
+            area.append("Private apartment\n");
+        }
+    }
+
+    public void displayDetails(JTextArea area) {
+        displayBasicInformation(area);
+        area.append("\nFacilities:\n");
+        area.append("- WiFi: " + (wifi ? "Yes" : "No") + "\n");
+        area.append("- Meals: " + (meals ? "Yes" : "No") + "\n");
+        area.append("- Security: " + (security ? "Yes" : "No") + "\n");
+        area.append("- Laundry: " + (laundry ? "Yes" : "No") + "\n");
+        area.append("- Mess: " + (mess ? "Yes" : "No") + "\n");
+        area.append("- AC: " + (ac ? "Yes" : "No") + "\n");
+        area.append("- Geyser: " + (geyser ? "Yes" : "No") + "\n");
+        area.append("- Kitchen: " + (kitchen ? "Yes" : "No") + "\n");
+    }
+}
+
+class Hostel extends Accommodation {
+    private final boolean studyRoom;
+    private final boolean sportsFacility;
+
+    public Hostel(String name, String location, int rent, boolean wifi, 
+                 boolean meals, boolean security, double rating, int roomSharing, 
+                 boolean laundry, boolean mess, boolean ac, boolean geyser, 
+                 boolean kitchen, String curfew, String gender,
+                 boolean studyRoom, boolean sportsFacility) {
+        super(name, "Hostel", location, rent, wifi, meals, security, rating, 
+              roomSharing, laundry, mess, ac, geyser, kitchen, curfew, gender);
+        this.studyRoom = studyRoom;
+        this.sportsFacility = sportsFacility;
+    }
+
+    public void displayDetails(JTextArea area) {
+        super.displayDetails(area);
+        area.append("Hostel-specific Facilities:\n");
+        area.append("- Study Room: " + (studyRoom ? "Yes" : "No") + "\n");
+        area.append("- Sports Facility: " + (sportsFacility ? "Yes" : "No") + "\n");
+    }
+}
+
+class PG extends Accommodation {
+    private final boolean parking;
+    private final boolean powerBackup;
+
+    public PG(String name, String location, int rent, boolean wifi, 
+             boolean meals, boolean security, double rating, int roomSharing, 
+             boolean laundry, boolean mess, boolean ac, boolean geyser, 
+             boolean kitchen, String curfew, String gender,
+             boolean parking, boolean powerBackup) {
+        super(name, "PG", location, rent, wifi, meals, security, rating, 
+              roomSharing, laundry, mess, ac, geyser, kitchen, curfew, gender);
+        this.parking = parking;
+        this.powerBackup = powerBackup;
+    }
+
+    public void displayDetails(JTextArea area) {
+        super.displayDetails(area);
+        area.append("PG-specific Facilities:\n");
+        area.append("- Parking: " + (parking ? "Yes" : "No") + "\n");
+        area.append("- Power Backup: " + (powerBackup ? "Yes" : "No") + "\n");
+    }
+}
+
+class Flat extends Accommodation {
+    private final boolean furnished;
+    private final boolean maintenanceIncluded;
+
+    public Flat(String name, String location, int rent, boolean wifi, 
+               boolean meals, boolean security, double rating, 
+               boolean laundry, boolean mess, boolean ac, boolean geyser, 
+               boolean kitchen, String gender,
+               boolean furnished, boolean maintenanceIncluded) {
+        super(name, "Flat", location, rent, wifi, meals, security, rating, 
+              1, laundry, mess, ac, geyser, kitchen, "None", gender);
+        this.furnished = furnished;
+        this.maintenanceIncluded = maintenanceIncluded;
+    }
+
+    public void displayDetails(JTextArea area) {
+        super.displayDetails(area);
+        area.append("Flat-specific Facilities:\n");
+        area.append("- Furnished: " + (furnished ? "Yes" : "No") + "\n");
+        area.append("- Maintenance Included: " + (maintenanceIncluded ? "Yes" : "No") + "\n");
+    }
+}
+
+interface Authentication {
+    boolean login(String username, String password);
+    void register(String username, String password);
+}
+
+class UserAuthenticator implements Authentication {
+    private String username;
+    private String password;
+    private static int registrationCount = 0;
+    
+    public boolean login(String username, String password) {
+        return this.username != null && this.username.equals(username) && 
+               this.password != null && this.password.equals(password);
+    }
+
+    public void register(String username, String password) {
+        this.username = username;
+        this.password = password;
+        registrationCount++;
+    }
+}

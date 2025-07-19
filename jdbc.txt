@@ -1,0 +1,1932 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import java.util.List;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.sql.*;
+
+public class StudentHousingSystemSwing {
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            HousingManager manager = new HousingManager();
+            manager.loadAccommodations("oops_dataset2.csv");
+            manager.showLoginFrame();
+        });
+    }
+}
+
+abstract class HousingProperty {
+    private final String name;
+    
+    public HousingProperty(String name) {
+        this.name = name;
+    }
+    
+    public final String getName() {
+        return name;
+    }
+    
+    public abstract void displayBasicInformation();
+}
+
+class Accommodation extends HousingProperty {
+    private final String type;
+    private final String location;
+    private final Integer rent;
+    private final Boolean wifi;
+    private final Boolean meals;
+    private final Boolean security;
+    private final Double rating;
+    private final Integer roomSharing;
+    private final Boolean laundry;
+    private final Boolean mess;
+    private final Boolean ac;
+    private final Boolean geyser;
+    private final Boolean kitchen;
+    private final String curfew;
+    private final String gender;
+
+    public Accommodation(String name, String type, String location, Integer rent, Boolean wifi, 
+                        Boolean meals, Boolean security, Double rating, Integer roomSharing, 
+                        Boolean laundry, Boolean mess, Boolean ac, Boolean geyser, 
+                        Boolean kitchen, String curfew, String gender) {
+        super(name);
+        this.type = type;
+        this.location = location;
+        this.rent = rent;
+        this.wifi = wifi;
+        this.meals = meals;
+        this.security = security;
+        this.rating = rating;
+        this.roomSharing = roomSharing;
+        this.laundry = laundry;
+        this.mess = mess;
+        this.ac = ac;
+        this.geyser = geyser;
+        this.kitchen = kitchen;
+        this.curfew = curfew;
+        this.gender = gender;
+    }
+
+    public String getType() { return type; }
+    public String getLocation() { return location; }
+    public Integer getRent() { return rent; }
+    public Boolean hasWifi() { return wifi; }
+    public Boolean hasMeals() { return meals; }
+    public Boolean hasSecurity() { return security; }
+    public Double getRating() { return rating; }
+    public Integer getRoomSharing() { return roomSharing; }
+    public Boolean hasLaundry() { return laundry; }
+    public Boolean hasMess() { return mess; }
+    public Boolean hasAC() { return ac; }
+    public Boolean hasGeyser() { return geyser; }
+    public Boolean hasKitchen() { return kitchen; }
+    public String getCurfew() { return curfew; }
+    public String getGender() { return gender; }
+
+    public void displayBasicInformation() {
+        System.out.println("\n--- " + type + " Accommodation ---");
+        System.out.println("Name: " + super.getName());
+        System.out.println("Location: " + location);
+        System.out.println("Rent: Rs" + rent);
+        System.out.println("Rating: " + rating + "/5");
+        System.out.println("Gender: " + gender);
+        if (!type.equalsIgnoreCase("Flat")) {
+            System.out.println("Room Sharing: " + roomSharing + " sharing");
+            System.out.println("Curfew: " + (curfew.equals("None") ? "No curfew" : curfew));
+        } else {
+            System.out.println("Private apartment");
+        }
+    }
+
+    public void displayDetails() {
+        displayBasicInformation();
+        System.out.println("\nFacilities:");
+        System.out.println("- WiFi: " + (wifi ? "Yes" : "No"));
+        System.out.println("- Meals: " + (meals ? "Yes" : "No"));
+        System.out.println("- Security: " + (security ? "Yes" : "No"));
+        System.out.println("- Laundry: " + (laundry ? "Yes" : "No"));
+        System.out.println("- Mess: " + (mess ? "Yes" : "No"));
+        System.out.println("- AC: " + (ac ? "Yes" : "No"));
+        System.out.println("- Geyser: " + (geyser ? "Yes" : "No"));
+        System.out.println("- Kitchen: " + (kitchen ? "Yes" : "No"));
+    }
+}
+
+class Hostel extends Accommodation {
+    private final Boolean studyRoom;
+    private final Boolean sportsFacility;
+
+    public Hostel(String name, String location, Integer rent, Boolean wifi, 
+                 Boolean meals, Boolean security, Double rating, Integer roomSharing, 
+                 Boolean laundry, Boolean mess, Boolean ac, Boolean geyser, 
+                 Boolean kitchen, String curfew, String gender,
+                 Boolean studyRoom, Boolean sportsFacility) {
+        super(name, "Hostel", location, rent, wifi, meals, security, rating, 
+              roomSharing, laundry, mess, ac, geyser, kitchen, curfew, gender);
+        this.studyRoom = studyRoom;
+        this.sportsFacility = sportsFacility;
+    }
+
+    public void displayDetails() {
+        super.displayDetails();
+        System.out.println("Hostel-specific Facilities:");
+        System.out.println("- Study Room: " + (studyRoom ? "Yes" : "No"));
+        System.out.println("- Sports Facility: " + (sportsFacility ? "Yes" : "No"));
+    }
+    
+    public Boolean hasStudyRoom() { return studyRoom; }
+    public Boolean hasSportsFacility() { return sportsFacility; }
+}
+
+class PG extends Accommodation {
+    private final Boolean parking;
+    private final Boolean powerBackup;
+
+    public PG(String name, String location, Integer rent, Boolean wifi, 
+             Boolean meals, Boolean security, Double rating, Integer roomSharing, 
+             Boolean laundry, Boolean mess, Boolean ac, Boolean geyser, 
+             Boolean kitchen, String curfew, String gender,
+             Boolean parking, Boolean powerBackup) {
+        super(name, "PG", location, rent, wifi, meals, security, rating, 
+              roomSharing, laundry, mess, ac, geyser, kitchen, curfew, gender);
+        this.parking = parking;
+        this.powerBackup = powerBackup;
+    }
+
+    public void displayDetails() {
+        super.displayDetails();
+        System.out.println("PG-specific Facilities:");
+        System.out.println("- Parking: " + (parking ? "Yes" : "No"));
+        System.out.println("- Power Backup: " + (powerBackup ? "Yes" : "No"));
+    }
+    
+    public Boolean hasParking() { return parking; }
+    public Boolean hasPowerBackup() { return powerBackup; }
+}
+
+class Flat extends Accommodation {
+    private final Boolean furnished;
+    private final Boolean maintenanceIncluded;
+
+    public Flat(String name, String location, Integer rent, Boolean wifi, 
+               Boolean meals, Boolean security, Double rating, 
+               Boolean laundry, Boolean mess, Boolean ac, Boolean geyser, 
+               Boolean kitchen, String gender,
+               Boolean furnished, Boolean maintenanceIncluded) {
+        super(name, "Flat", location, rent, wifi, meals, security, rating, 
+              1, laundry, mess, ac, geyser, kitchen, "None", gender);
+        this.furnished = furnished;
+        this.maintenanceIncluded = maintenanceIncluded;
+    }
+
+    public void displayDetails() {
+        super.displayDetails();
+        System.out.println("Flat-specific Facilities:");
+        System.out.println("- Furnished: " + (furnished ? "Yes" : "No"));
+        System.out.println("- Maintenance Included: " + (maintenanceIncluded ? "Yes" : "No"));
+    }
+    
+    public Boolean isFurnished() { return furnished; }
+    public Boolean isMaintenanceIncluded() { return maintenanceIncluded; }
+}
+
+interface Authentication {
+    Boolean login(String username, String password);
+    void register(String username, String password);
+    Boolean isAdmin();
+}
+
+class DatabaseManager {
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/student_housing";
+    private static final String DB_USER = "root";
+    private static final String DB_PASSWORD = "password";
+    
+    static {
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "MySQL JDBC Driver not found!", "Database Error", JOptionPane.ERROR_MESSAGE);
+            System.exit(1);
+        }
+    }
+    
+    public static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+    }
+    
+    public static void initializeDatabase() {
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement()) {
+            
+            // Create users table
+            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS users (" +
+                              "id INT AUTO_INCREMENT PRIMARY KEY, " +
+                              "username VARCHAR(50) UNIQUE NOT NULL, " +
+                              "password VARCHAR(50) NOT NULL, " +
+                              "is_admin BOOLEAN DEFAULT FALSE)");
+            
+            // Create admin user if not exists
+            stmt.executeUpdate("INSERT IGNORE INTO users (username, password, is_admin) VALUES " +
+                              "('admin', 'admin123', TRUE)");
+            
+            // Create accommodations table
+            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS accommodations (" +
+                              "id INT AUTO_INCREMENT PRIMARY KEY, " +
+                              "name VARCHAR(100) NOT NULL, " +
+                              "type VARCHAR(20) NOT NULL, " +
+                              "location VARCHAR(100) NOT NULL, " +
+                              "rent INT NOT NULL, " +
+                              "wifi BOOLEAN, " +
+                              "meals BOOLEAN, " +
+                              "security BOOLEAN, " +
+                              "rating DOUBLE, " +
+                              "room_sharing INT, " +
+                              "laundry BOOLEAN, " +
+                              "mess BOOLEAN, " +
+                              "ac BOOLEAN, " +
+                              "geyser BOOLEAN, " +
+                              "kitchen BOOLEAN, " +
+                              "curfew VARCHAR(50), " +
+                              "gender VARCHAR(20), " +
+                              "study_room BOOLEAN, " +
+                              "sports_facility BOOLEAN, " +
+                              "parking BOOLEAN, " +
+                              "power_backup BOOLEAN, " +
+                              "furnished BOOLEAN, " +
+                              "maintenance_included BOOLEAN)");
+            
+            // Create bookings table
+            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS bookings (" +
+                              "id INT AUTO_INCREMENT PRIMARY KEY, " +
+                              "customer_name VARCHAR(100) NOT NULL, " +
+                              "contact VARCHAR(20) NOT NULL, " +
+                              "university VARCHAR(100) NOT NULL, " +
+                              "accommodation_id INT NOT NULL, " +
+                              "confirmed BOOLEAN DEFAULT FALSE, " +
+                              "FOREIGN KEY (accommodation_id) REFERENCES accommodations(id))");
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Database initialization failed: " + e.getMessage(), 
+                                        "Database Error", JOptionPane.ERROR_MESSAGE);
+            System.exit(1);
+        }
+    }
+}
+
+class UserAuthenticator implements Authentication {
+    private String username;
+    private Boolean isAdmin = false;
+    
+    public Boolean login(String username, String password) {
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                 "SELECT * FROM users WHERE username = ? AND password = ?")) {
+            
+            stmt.setString(1, username);
+            stmt.setString(2, password);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                this.username = username;
+                this.isAdmin = rs.getBoolean("is_admin");
+                return true;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public void register(String username, String password) {
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                 "INSERT INTO users (username, password) VALUES (?, ?)")) {
+            
+            stmt.setString(1, username);
+            stmt.setString(2, password);
+            stmt.executeUpdate();
+            
+            this.username = username;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Registration failed: " + e.getMessage());
+        }
+    }
+
+    public Boolean isAdmin() {
+        return isAdmin;
+    }
+}
+
+class AdminAuthenticator extends UserAuthenticator {
+    @Override
+    public Boolean login(String username, String password) {
+        Boolean result = super.login(username, password);
+        if (result && isAdmin()) {
+            return true;
+        }
+        return false;
+    }
+}
+
+class Booking {
+    public Integer id;
+    private String customerName;
+    private String contact;
+    private String university;
+    private Accommodation accommodation;
+    private Boolean confirmed;
+    
+    public Booking(Integer id, String customerName, String contact, String university, 
+                  Accommodation accommodation) {
+        this.id = id;
+        this.customerName = customerName;
+        this.contact = contact;
+        this.university = university;
+        this.accommodation = accommodation;
+        this.confirmed = false;
+    }
+    
+    public Booking(Integer id, String customerName, String contact, String university, 
+                  Accommodation accommodation, Boolean confirmed) {
+        this(id, customerName, contact, university, accommodation);
+        this.confirmed = confirmed;
+    }
+    
+    public Integer getId() { return id; }
+    public String getCustomerName() { return customerName; }
+    public String getContact() { return contact; }
+    public String getUniversity() { return university; }
+    public Accommodation getAccommodation() { return accommodation; }
+    public Boolean isConfirmed() { return confirmed; }
+    
+    public void setConfirmed(Boolean confirmed) { this.confirmed = confirmed; }
+    
+    public void display() {
+        System.out.println("\nBooking ID: " + id);
+        System.out.println("Customer: " + customerName);
+        System.out.println("Contact: " + contact);
+        System.out.println("University: " + university);
+        System.out.println("Status: " + (confirmed ? "Confirmed" : "Pending"));
+        System.out.println("Accommodation Details:");
+        accommodation.displayBasicInformation();
+    }
+}
+
+class HousingManager {
+    private List<Accommodation> accommodations;
+    private UserAuthenticator authenticator;
+    private String currentUser;
+    private List<Booking> bookings;
+    private Integer nextBookingId;
+    private Map<String, List<Accommodation>> locationMap;
+    private Map<String, List<Accommodation>> typeMap;
+
+    // Swing components
+    private JFrame loginFrame, mainFrame, adminFrame;
+    private JTextField usernameField, passwordField;
+    private JTextArea outputArea;
+
+    public HousingManager() {
+        DatabaseManager.initializeDatabase();
+        accommodations = new ArrayList<>();
+        authenticator = new UserAuthenticator();
+        currentUser = null;
+        bookings = new ArrayList<>();
+        nextBookingId = 1;
+        locationMap = new HashMap<>();
+        typeMap = new HashMap<>();
+        loadBookingsFromDatabase();
+    }
+
+    private void loadBookingsFromDatabase() {
+        try (Connection conn = DatabaseManager.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT * FROM bookings")) {
+            
+            while (rs.next()) {
+                int accId = rs.getInt("accommodation_id");
+                Accommodation acc = findAccommodationById(accId);
+                if (acc != null) {
+                    Booking booking = new Booking(
+                        rs.getInt("id"),
+                        rs.getString("customer_name"),
+                        rs.getString("contact"),
+                        rs.getString("university"),
+                        acc,
+                        rs.getBoolean("confirmed")
+                    );
+                    bookings.add(booking);
+                    if (rs.getInt("id") >= nextBookingId) {
+                        nextBookingId = rs.getInt("id") + 1;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private Accommodation findAccommodationById(int id) {
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM accommodations WHERE id = ?")) {
+            
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                return createAccommodationFromResultSet(rs);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    private Accommodation createAccommodationFromResultSet(ResultSet rs) throws SQLException {
+        String type = rs.getString("type");
+        String name = rs.getString("name");
+        String location = rs.getString("location");
+        int rent = rs.getInt("rent");
+        boolean wifi = rs.getBoolean("wifi");
+        boolean meals = rs.getBoolean("meals");
+        boolean security = rs.getBoolean("security");
+        double rating = rs.getDouble("rating");
+        int roomSharing = rs.getInt("room_sharing");
+        boolean laundry = rs.getBoolean("laundry");
+        boolean mess = rs.getBoolean("mess");
+        boolean ac = rs.getBoolean("ac");
+        boolean geyser = rs.getBoolean("geyser");
+        boolean kitchen = rs.getBoolean("kitchen");
+        String curfew = rs.getString("curfew");
+        String gender = rs.getString("gender");
+
+        if (type.equalsIgnoreCase("Hostel")) {
+            boolean studyRoom = rs.getBoolean("study_room");
+            boolean sportsFacility = rs.getBoolean("sports_facility");
+            return new Hostel(name, location, rent, wifi, meals, security, rating,
+                            roomSharing, laundry, mess, ac, geyser, kitchen,
+                            curfew, gender, studyRoom, sportsFacility);
+        } else if (type.equalsIgnoreCase("PG")) {
+            boolean parking = rs.getBoolean("parking");
+            boolean powerBackup = rs.getBoolean("power_backup");
+            return new PG(name, location, rent, wifi, meals, security, rating,
+                        roomSharing, laundry, mess, ac, geyser, kitchen,
+                        curfew, gender, parking, powerBackup);
+        } else if (type.equalsIgnoreCase("Flat")) {
+            boolean furnished = rs.getBoolean("furnished");
+            boolean maintenance = rs.getBoolean("maintenance_included");
+            return new Flat(name, location, rent, wifi, meals, security, rating,
+                          laundry, mess, ac, geyser, kitchen, gender,
+                          furnished, maintenance);
+        } else {
+            return new Accommodation(name, type, location, rent, wifi, meals, security,
+                                  rating, roomSharing, laundry, mess, ac, geyser,
+                                  kitchen, curfew, gender);
+        }
+    }
+
+    public void loadAccommodations(String filename) {
+        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+            String line;
+            Boolean firstLine = true;
+            
+            while ((line = br.readLine()) != null) {
+                if (firstLine) {
+                    firstLine = false;
+                    continue;
+                }
+                
+                String[] values = line.split(",");
+                if (values.length >= 22) {
+                    String type = values[1].trim();
+                    Accommodation acc = createAccommodationFromValues(values, type);
+                    
+                    if (acc != null) {
+                        accommodations.add(acc);
+                        locationMap.computeIfAbsent(acc.getLocation(), k -> new ArrayList<>()).add(acc);
+                        typeMap.computeIfAbsent(acc.getType(), k -> new ArrayList<>()).add(acc);
+                        saveAccommodationToDatabase(acc);
+                    }
+                }
+            }
+            System.out.println("Loaded " + accommodations.size() + " accommodations from file.");
+        } catch (IOException e) {
+            System.out.println("Error loading accommodations: " + e.getMessage());
+        } catch (NumberFormatException e) {
+            System.out.println("Error parsing data: " + e.getMessage());
+        }
+    }
+
+    private void saveAccommodationToDatabase(Accommodation acc) {
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                 "INSERT INTO accommodations (name, type, location, rent, wifi, meals, security, " +
+                 "rating, room_sharing, laundry, mess, ac, geyser, kitchen, curfew, gender, " +
+                 "study_room, sports_facility, parking, power_backup, furnished, maintenance_included) " +
+                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+            
+            stmt.setString(1, acc.getName());
+            stmt.setString(2, acc.getType());
+            stmt.setString(3, acc.getLocation());
+            stmt.setInt(4, acc.getRent());
+            stmt.setBoolean(5, acc.hasWifi());
+            stmt.setBoolean(6, acc.hasMeals());
+            stmt.setBoolean(7, acc.hasSecurity());
+            stmt.setDouble(8, acc.getRating());
+            stmt.setInt(9, acc.getRoomSharing());
+            stmt.setBoolean(10, acc.hasLaundry());
+            stmt.setBoolean(11, acc.hasMess());
+            stmt.setBoolean(12, acc.hasAC());
+            stmt.setBoolean(13, acc.hasGeyser());
+            stmt.setBoolean(14, acc.hasKitchen());
+            stmt.setString(15, acc.getCurfew());
+            stmt.setString(16, acc.getGender());
+            
+            if (acc instanceof Hostel) {
+                Hostel h = (Hostel) acc;
+                stmt.setBoolean(17, h.hasStudyRoom());
+                stmt.setBoolean(18, h.hasSportsFacility());
+                stmt.setNull(19, Types.BOOLEAN);
+                stmt.setNull(20, Types.BOOLEAN);
+                stmt.setNull(21, Types.BOOLEAN);
+                stmt.setNull(22, Types.BOOLEAN);
+            } else if (acc instanceof PG) {
+                PG pg = (PG) acc;
+                stmt.setNull(17, Types.BOOLEAN);
+                stmt.setNull(18, Types.BOOLEAN);
+                stmt.setBoolean(19, pg.hasParking());
+                stmt.setBoolean(20, pg.hasPowerBackup());
+                stmt.setNull(21, Types.BOOLEAN);
+                stmt.setNull(22, Types.BOOLEAN);
+            } else if (acc instanceof Flat) {
+                Flat f = (Flat) acc;
+                stmt.setNull(17, Types.BOOLEAN);
+                stmt.setNull(18, Types.BOOLEAN);
+                stmt.setNull(19, Types.BOOLEAN);
+                stmt.setNull(20, Types.BOOLEAN);
+                stmt.setBoolean(21, f.isFurnished());
+                stmt.setBoolean(22, f.isMaintenanceIncluded());
+            } else {
+                stmt.setNull(17, Types.BOOLEAN);
+                stmt.setNull(18, Types.BOOLEAN);
+                stmt.setNull(19, Types.BOOLEAN);
+                stmt.setNull(20, Types.BOOLEAN);
+                stmt.setNull(21, Types.BOOLEAN);
+                stmt.setNull(22, Types.BOOLEAN);
+            }
+            
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Accommodation createAccommodationFromValues(String[] values, String type) {
+        try {
+            String name = values[0].trim();
+            String location = values[2].trim();
+            Integer rent = Integer.parseInt(values[3].trim());
+            Boolean wifi = values[4].trim().equals("Yes");
+            Boolean meals = values[5].trim().equals("Yes");
+            Boolean security = values[6].trim().equals("Yes");
+            Double rating = Double.parseDouble(values[7].trim());
+            Integer roomSharing = Integer.parseInt(values[8].trim());
+            Boolean laundry = values[9].trim().equals("Yes");
+            Boolean mess = values[10].trim().equals("Yes");
+            Boolean ac = values[11].trim().equals("Yes");
+            Boolean geyser = values[12].trim().equals("Yes");
+            Boolean kitchen = values[13].trim().equals("Yes");
+            String curfew = values[14].trim();
+            String gender = values[15].trim();
+
+            if (type.equalsIgnoreCase("Hostel")) {
+                Boolean studyRoom = values[17].trim().equals("Yes");
+                Boolean sportsFacility = values[18].trim().equals("Yes");
+                return new Hostel(name, location, rent, wifi, meals, security, rating,
+                                roomSharing, laundry, mess, ac, geyser, kitchen,
+                                curfew, gender, studyRoom, sportsFacility);
+            } else if (type.equalsIgnoreCase("PG")) {
+                Boolean parking = values[16].trim().equals("Yes");
+                Boolean powerBackup = values[17].trim().equals("Yes");
+                return new PG(name, location, rent, wifi, meals, security, rating,
+                            roomSharing, laundry, mess, ac, geyser, kitchen,
+                            curfew, gender, parking, powerBackup);
+            } else if (type.equalsIgnoreCase("Flat")) {
+                Boolean furnished = values[20].trim().equals("Yes");
+                Boolean maintenance = values[21].trim().equals("Yes");
+                return new Flat(name, location, rent, wifi, meals, security, rating,
+                              laundry, mess, ac, geyser, kitchen, gender,
+                              furnished, maintenance);
+            } else {
+                return new Accommodation(name, type, location, rent, wifi, meals, security,
+                                      rating, roomSharing, laundry, mess, ac, geyser,
+                                      kitchen, curfew, gender);
+            }
+        } catch (Exception e) {
+            System.out.println("Error creating accommodation: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public void showLoginFrame() {
+        loginFrame = new JFrame("Student Housing Management System - Login");
+        loginFrame.setSize(400, 300);
+        loginFrame.setLayout(null);
+        loginFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        JLabel titleLabel = new JLabel("Student Housing Management System");
+        titleLabel.setBounds(50, 20, 300, 30);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        loginFrame.add(titleLabel);
+
+        JLabel userLabel = new JLabel("Username:");
+        userLabel.setBounds(50, 70, 100, 25);
+        loginFrame.add(userLabel);
+
+        usernameField = new JTextField();
+        usernameField.setBounds(150, 70, 200, 25);
+        loginFrame.add(usernameField);
+
+        JLabel passLabel = new JLabel("Password:");
+        passLabel.setBounds(50, 110, 100, 25);
+        loginFrame.add(passLabel);
+
+        passwordField = new JPasswordField();
+        passwordField.setBounds(150, 110, 200, 25);
+        loginFrame.add(passwordField);
+
+        JButton loginButton = new JButton("Login");
+        loginButton.setBounds(100, 160, 100, 30);
+        loginButton.addActionListener(e -> handleLogin());
+        loginFrame.add(loginButton);
+
+        JButton registerButton = new JButton("Register");
+        registerButton.setBounds(220, 160, 100, 30);
+        registerButton.addActionListener(e -> handleRegistration());
+        loginFrame.add(registerButton);
+
+        JButton adminButton = new JButton("Admin Login");
+        adminButton.setBounds(150, 200, 120, 30);
+        adminButton.addActionListener(e -> handleAdminLogin());
+        loginFrame.add(adminButton);
+
+        loginFrame.setVisible(true);
+    }
+
+    private void handleLogin() {
+        String username = usernameField.getText();
+        String password = passwordField.getText();
+        
+        if (authenticator.login(username, password)) {
+            currentUser = username;
+            JOptionPane.showMessageDialog(loginFrame, "Login successful! Welcome, " + username + "!");
+            loginFrame.dispose();
+            showMainMenu();
+        } else {
+            JOptionPane.showMessageDialog(loginFrame, "Invalid username or password. Please try again.");
+        }
+    }
+
+    private void handleAdminLogin() {
+        AdminAuthenticator adminAuth = new AdminAuthenticator();
+        String username = usernameField.getText();
+        String password = passwordField.getText();
+        
+        if (adminAuth.login(username, password)) {
+            currentUser = username;
+            JOptionPane.showMessageDialog(loginFrame, "Admin login successful! Welcome, " + username + "!");
+            loginFrame.dispose();
+            showAdminMenu();
+        } else {
+            JOptionPane.showMessageDialog(loginFrame, "Invalid admin credentials. Please try again.");
+        }
+    }
+
+    private void handleRegistration() {
+        String username = usernameField.getText();
+        String password = passwordField.getText();
+        
+        if (username.isEmpty() || password.isEmpty()) {
+            JOptionPane.showMessageDialog(loginFrame, "Username and password cannot be empty!");
+            return;
+        }
+        
+        try {
+            authenticator.register(username, password);
+            JOptionPane.showMessageDialog(loginFrame, "Registration successful! You can now login with your credentials.");
+        } catch (RuntimeException e) {
+            JOptionPane.showMessageDialog(loginFrame, "Registration failed: " + e.getMessage());
+        }
+    }
+
+    private void showMainMenu() {
+        mainFrame = new JFrame("Student Housing System - Main Menu");
+        mainFrame.setSize(600, 500);
+        mainFrame.setLayout(null);
+        mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        JLabel titleLabel = new JLabel("Welcome, " + currentUser + "!");
+        titleLabel.setBounds(50, 20, 300, 30);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        mainFrame.add(titleLabel);
+
+        JButton searchButton = new JButton("Search Accommodations");
+        searchButton.setBounds(50, 70, 200, 30);
+        searchButton.addActionListener(e -> searchAccommodations());
+        mainFrame.add(searchButton);
+
+        JButton viewAllButton = new JButton("View All Accommodations");
+        viewAllButton.setBounds(50, 120, 200, 30);
+        viewAllButton.addActionListener(e -> viewAllAccommodations());
+        mainFrame.add(viewAllButton);
+
+        JButton filterButton = new JButton("Filter Accommodations");
+        filterButton.setBounds(50, 170, 200, 30);
+        filterButton.addActionListener(e -> filterAccommodations());
+        mainFrame.add(filterButton);
+
+        JButton logoutButton = new JButton("Logout");
+        logoutButton.setBounds(50, 220, 200, 30);
+        logoutButton.addActionListener(e -> {
+            currentUser = null;
+            mainFrame.dispose();
+            showLoginFrame();
+        });
+        mainFrame.add(logoutButton);
+
+        outputArea = new JTextArea();
+        outputArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(outputArea);
+        scrollPane.setBounds(300, 70, 250, 350);
+        mainFrame.add(scrollPane);
+
+        mainFrame.setVisible(true);
+    }
+
+    private void showAdminMenu() {
+        adminFrame = new JFrame("Admin Panel");
+        adminFrame.setSize(600, 500);
+        adminFrame.setLayout(null);
+        adminFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        JLabel titleLabel = new JLabel("Admin Panel - Welcome, " + currentUser + "!");
+        titleLabel.setBounds(50, 20, 300, 30);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        adminFrame.add(titleLabel);
+
+        JButton addButton = new JButton("Add New Accommodation");
+        addButton.setBounds(50, 70, 200, 30);
+        addButton.addActionListener(e -> addNewAccommodation());
+        adminFrame.add(addButton);
+
+        JButton updateButton = new JButton("Update Accommodation");
+        updateButton.setBounds(50, 120, 200, 30);
+        updateButton.addActionListener(e -> updateAccommodation());
+        adminFrame.add(updateButton);
+
+        JButton deleteButton = new JButton("Delete Accommodation");
+        deleteButton.setBounds(50, 170, 200, 30);
+        deleteButton.addActionListener(e -> deleteAccommodation());
+        adminFrame.add(deleteButton);
+
+        JButton viewBookingsButton = new JButton("View All Bookings");
+        viewBookingsButton.setBounds(50, 220, 200, 30);
+        viewBookingsButton.addActionListener(e -> viewAllBookings());
+        adminFrame.add(viewBookingsButton);
+
+        JButton confirmBookingButton = new JButton("Confirm Booking");
+        confirmBookingButton.setBounds(50, 270, 200, 30);
+        confirmBookingButton.addActionListener(e -> confirmBooking());
+        adminFrame.add(confirmBookingButton);
+
+        JButton logoutButton = new JButton("Logout");
+        logoutButton.setBounds(50, 320, 200, 30);
+        logoutButton.addActionListener(e -> {
+            currentUser = null;
+            adminFrame.dispose();
+            showLoginFrame();
+        });
+        adminFrame.add(logoutButton);
+
+        outputArea = new JTextArea();
+        outputArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(outputArea);
+        scrollPane.setBounds(300, 70, 250, 350);
+        adminFrame.add(scrollPane);
+
+        adminFrame.setVisible(true);
+    }
+
+    private void searchAccommodations() {
+        JFrame searchFrame = new JFrame("Search Accommodations");
+        searchFrame.setSize(400, 300);
+        searchFrame.setLayout(null);
+
+        JLabel titleLabel = new JLabel("Search Accommodations");
+        titleLabel.setBounds(50, 20, 300, 30);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        searchFrame.add(titleLabel);
+
+        JButton pgButton = new JButton("PG (Paying Guest)");
+        pgButton.setBounds(50, 70, 150, 30);
+        pgButton.addActionListener(e -> {
+            List<Accommodation> filtered = typeMap.getOrDefault("PG", new ArrayList<>());
+            displayAccommodationList(filtered, "Available PG Accommodations");
+            searchFrame.dispose();
+        });
+        searchFrame.add(pgButton);
+
+        JButton hostelButton = new JButton("Hostel");
+        hostelButton.setBounds(50, 120, 150, 30);
+        hostelButton.addActionListener(e -> {
+            List<Accommodation> filtered = typeMap.getOrDefault("Hostel", new ArrayList<>());
+            displayAccommodationList(filtered, "Available Hostel Accommodations");
+            searchFrame.dispose();
+        });
+        searchFrame.add(hostelButton);
+
+        JButton flatButton = new JButton("Flat");
+        flatButton.setBounds(50, 170, 150, 30);
+        flatButton.addActionListener(e -> {
+            List<Accommodation> filtered = typeMap.getOrDefault("Flat", new ArrayList<>());
+            displayAccommodationList(filtered, "Available Flat Accommodations");
+            searchFrame.dispose();
+        });
+        searchFrame.add(flatButton);
+
+        JButton allButton = new JButton("View All Types");
+        allButton.setBounds(220, 70, 150, 30);
+        allButton.addActionListener(e -> {
+            viewAllAccommodations();
+            searchFrame.dispose();
+        });
+        searchFrame.add(allButton);
+
+        JButton backButton = new JButton("Back");
+        backButton.setBounds(220, 170, 150, 30);
+        backButton.addActionListener(e -> searchFrame.dispose());
+        searchFrame.add(backButton);
+
+        searchFrame.setVisible(true);
+    }
+
+    private void viewAllAccommodations() {
+        displayAccommodationList(accommodations, "All Available Accommodations");
+    }
+
+    private void displayAccommodationList(List<Accommodation> accList, String title) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== ").append(title).append(" ===\n");
+        
+        if (accList.isEmpty()) {
+            sb.append("No accommodations found.\n");
+        } else {
+            for (int i = 0; i < accList.size(); i++) {
+                Accommodation acc = accList.get(i);
+                sb.append(i+1).append(". ").append(acc.getName())
+                  .append(" (").append(acc.getType()).append(") - ")
+                  .append(acc.getLocation())
+                  .append(" (Rs").append(acc.getRent()).append(")\n");
+            }
+        }
+        
+        outputArea.setText(sb.toString());
+        
+        if (!accList.isEmpty()) {
+            JButton viewDetailsButton = new JButton("View Details");
+            viewDetailsButton.setBounds(50, 270, 200, 30);
+            viewDetailsButton.addActionListener(e -> viewAccommodationDetails(accList));
+            if (mainFrame != null) {
+                mainFrame.add(viewDetailsButton);
+                mainFrame.revalidate();
+                mainFrame.repaint();
+            } else if (adminFrame != null) {
+                adminFrame.add(viewDetailsButton);
+                adminFrame.revalidate();
+                adminFrame.repaint();
+            }
+        }
+    }
+
+    private void viewAccommodationDetails(List<Accommodation> accList) {
+        String input = JOptionPane.showInputDialog(mainFrame != null ? mainFrame : adminFrame, 
+            "Enter the number to view details (1-" + accList.size() + "):");
+            
+        
+        try {
+            int choice = Integer.parseInt(input);
+            if (choice >= 1 && choice <= accList.size()) {
+                Accommodation acc = accList.get(choice-1);
+                StringBuilder sb = new StringBuilder();
+                sb.append("\n=== Accommodation Details ===\n");
+                sb.append("Type: ").append(acc.getType()).append("\n");
+                sb.append("Name: ").append(acc.getName()).append("\n");
+                sb.append("Location: ").append(acc.getLocation()).append("\n");
+                sb.append("Rent: Rs").append(acc.getRent()).append("\n");
+                sb.append("Rating: ").append(acc.getRating()).append("/5\n");
+                sb.append("Gender: ").append(acc.getGender()).append("\n");
+                
+                if (!acc.getType().equalsIgnoreCase("Flat")) {
+                    sb.append("Room Sharing: ").append(acc.getRoomSharing()).append(" sharing\n");
+                    sb.append("Curfew: ").append(acc.getCurfew().equals("None") ? "No curfew" : acc.getCurfew()).append("\n");
+                } else {
+                    sb.append("Private apartment\n");
+                }
+                
+                sb.append("\nFacilities:\n");
+                sb.append("- WiFi: ").append(acc.hasWifi() ? "Yes" : "No").append("\n");
+                sb.append("- Meals: ").append(acc.hasMeals() ? "Yes" : "No").append("\n");
+                sb.append("- Security: ").append(acc.hasSecurity() ? "Yes" : "No").append("\n");
+                sb.append("- Laundry: ").append(acc.hasLaundry() ? "Yes" : "No").append("\n");
+                sb.append("- Mess: ").append(acc.hasMess() ? "Yes" : "No").append("\n");
+                sb.append("- AC: ").append(acc.hasAC() ? "Yes" : "No").append("\n");
+                sb.append("- Geyser: ").append(acc.hasGeyser() ? "Yes" : "No").append("\n");
+                sb.append("- Kitchen: ").append(acc.hasKitchen() ? "Yes" : "No").append("\n");
+                
+                if (acc instanceof Hostel) {
+                    Hostel h = (Hostel)acc;
+                    sb.append("\nHostel-specific Facilities:\n");
+                    sb.append("- Study Room: ").append(h.hasStudyRoom() ? "Yes" : "No").append("\n");
+                    sb.append("- Sports Facility: ").append(h.hasSportsFacility() ? "Yes" : "No").append("\n");
+                } else if (acc instanceof PG) {
+                    PG pg = (PG)acc;
+                    sb.append("\nPG-specific Facilities:\n");
+                    sb.append("- Parking: ").append(pg.hasParking() ? "Yes" : "No").append("\n");
+                    sb.append("- Power Backup: ").append(pg.hasPowerBackup() ? "Yes" : "No").append("\n");
+                } else if (acc instanceof Flat) {
+                    Flat f = (Flat)acc;
+                    sb.append("\nFlat-specific Facilities:\n");
+                    sb.append("- Furnished: ").append(f.isFurnished() ? "Yes" : "No").append("\n");
+                    sb.append("- Maintenance Included: ").append(f.isMaintenanceIncluded() ? "Yes" : "No").append("\n");
+                }
+                
+                outputArea.setText(sb.toString());
+                
+                if (mainFrame != null) {
+                    int option = JOptionPane.showConfirmDialog(mainFrame, 
+                        "Would you like to book this accommodation?", "Book Accommodation", 
+                        JOptionPane.YES_NO_OPTION);
+                    
+                    if (option == JOptionPane.YES_OPTION) {
+                        bookAccommodation(acc);
+                    }
+                }
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(mainFrame != null ? mainFrame : adminFrame, 
+                "Please enter a valid number.");
+        }
+    }
+
+    private void bookAccommodation(Accommodation accommodation) {
+        JFrame bookFrame = new JFrame("Booking Process");
+        bookFrame.setBounds(0,0,400, 350);
+        bookFrame.setLayout(null);
+
+        JLabel titleLabel = new JLabel("Booking: " + accommodation.getName());
+        titleLabel.setBounds(50, 20, 300, 30);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        bookFrame.add(titleLabel);
+
+        JLabel rentLabel = new JLabel("Rent: Rs" + accommodation.getRent());
+        rentLabel.setBounds(50, 50, 200, 25);
+        bookFrame.add(rentLabel);
+
+        JLabel nameLabel = new JLabel("Your Full Name:");
+        nameLabel.setBounds(50, 90, 150, 25);
+        bookFrame.add(nameLabel);
+
+        JTextField nameField = new JTextField();
+        nameField.setBounds(200, 90, 150, 25);
+        bookFrame.add(nameField);
+
+        JLabel contactLabel = new JLabel("Contact Number:");
+        contactLabel.setBounds(50, 130, 150, 25);
+        bookFrame.add(contactLabel);
+
+        JTextField contactField = new JTextField();
+        contactField.setBounds(200, 130, 150, 25);
+        bookFrame.add(contactField);
+
+        JLabel uniLabel = new JLabel("University:");
+        uniLabel.setBounds(50, 170, 150, 25);
+        bookFrame.add(uniLabel);
+
+        JTextField uniField = new JTextField();
+        uniField.setBounds(200, 170, 150, 25);
+        bookFrame.add(uniField);
+
+        JButton submitButton = new JButton("Submit Booking");
+        submitButton.setBounds(100, 220, 200, 30);
+        submitButton.addActionListener(e -> {
+            String name = nameField.getText();
+            String contact = contactField.getText();
+            String university = uniField.getText();
+            
+            if (name.isEmpty() || contact.isEmpty() || university.isEmpty()) {
+                JOptionPane.showMessageDialog(bookFrame, "Please fill in all fields!");
+                return;
+            }
+            
+            Booking booking = new Booking(nextBookingId++, name, contact, university, accommodation);
+            bookings.add(booking);
+            saveBookingToDatabase(booking);
+            
+            JOptionPane.showMessageDialog(bookFrame, 
+                "Booking request submitted successfully!\n" +
+                "Your booking ID is: " + booking.getId() + "\n" +
+                "Please wait for admin confirmation.");
+            bookFrame.dispose();
+        });
+        bookFrame.add(submitButton);
+
+        JButton cancelButton = new JButton("Cancel");
+        cancelButton.setBounds(100, 260, 200, 30);
+        cancelButton.addActionListener(e -> bookFrame.dispose());
+        bookFrame.add(cancelButton);
+
+        bookFrame.setVisible(true);
+    }
+
+    private void saveBookingToDatabase(Booking booking) {
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                 "INSERT INTO bookings (customer_name, contact, university, accommodation_id) " +
+                 "VALUES (?, ?, ?, ?)")) {
+            
+            // First get the accommodation ID from database
+            int accId = getAccommodationId(booking.getAccommodation());
+            if (accId == -1) {
+                JOptionPane.showMessageDialog(null, "Error: Accommodation not found in database", "Database Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            stmt.setString(1, booking.getCustomerName());
+            stmt.setString(2, booking.getContact());
+            stmt.setString(3, booking.getUniversity());
+            stmt.setInt(4, accId);
+            stmt.executeUpdate();
+            
+            // Update the booking ID with the auto-generated ID from database
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    booking.id = rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private int getAccommodationId(Accommodation acc) {
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                 "SELECT id FROM accommodations WHERE name = ? AND type = ? AND location = ?")) {
+            
+            stmt.setString(1, acc.getName());
+            stmt.setString(2, acc.getType());
+            stmt.setString(3, acc.getLocation());
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt("id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    private void filterAccommodations() {
+        JFrame filterFrame = new JFrame("Filter Accommodations");
+        filterFrame.setSize(400, 400);
+        filterFrame.setLayout(null);
+
+        JLabel titleLabel = new JLabel("Filter Accommodations");
+        titleLabel.setBounds(50, 20, 300, 30);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        filterFrame.add(titleLabel);
+
+        JButton locationButton = new JButton("By Location");
+        locationButton.setBounds(50, 70, 150, 30);
+        locationButton.addActionListener(e -> {
+            filterFrame.dispose();
+            filterByLocation();
+        });
+        filterFrame.add(locationButton);
+
+        JButton rentButton = new JButton("By Rent Range");
+        rentButton.setBounds(220, 70, 150, 30);
+        rentButton.addActionListener(e -> {
+            filterFrame.dispose();
+            filterByRent();
+        });
+        filterFrame.add(rentButton);
+
+        JButton facilitiesButton = new JButton("By Facilities");
+        facilitiesButton.setBounds(50, 120, 150, 30);
+        facilitiesButton.addActionListener(e -> {
+            filterFrame.dispose();
+            filterByFacilities();
+        });
+        filterFrame.add(facilitiesButton);
+
+        JButton ratingButton = new JButton("By Rating");
+        ratingButton.setBounds(220, 120, 150, 30);
+        ratingButton.addActionListener(e -> {
+            filterFrame.dispose();
+            filterByRating();
+        });
+        filterFrame.add(ratingButton);
+
+        JButton genderButton = new JButton("By Gender");
+        genderButton.setBounds(50, 170, 150, 30);
+        genderButton.addActionListener(e -> {
+            filterFrame.dispose();
+            filterByGender();
+        });
+        filterFrame.add(genderButton);
+
+        JButton backButton = new JButton("Back");
+        backButton.setBounds(220, 170, 150, 30);
+        backButton.addActionListener(e -> filterFrame.dispose());
+        filterFrame.add(backButton);
+
+        filterFrame.setVisible(true);
+    }
+
+    private void filterByLocation() {
+        String[] locations = locationMap.keySet().toArray(new String[0]);
+        String selectedLocation = (String) JOptionPane.showInputDialog(
+            mainFrame != null ? mainFrame : adminFrame,
+            "Select location:",
+            "Filter by Location",
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            locations,
+            locations[0]);
+        
+        if (selectedLocation != null) {
+            List<Accommodation> filtered = locationMap.get(selectedLocation);
+            displayAccommodationList(filtered, "Accommodations in " + selectedLocation);
+        }
+    }
+
+    private void filterByRent() {
+        JFrame rentFrame = new JFrame("Filter by Rent");
+        rentFrame.setSize(350, 200);
+        rentFrame.setLayout(null);
+
+        JLabel minLabel = new JLabel("Minimum Rent:");
+        minLabel.setBounds(50, 30, 100, 25);
+        rentFrame.add(minLabel);
+
+        JTextField minField = new JTextField();
+        minField.setBounds(160, 30, 100, 25);
+        rentFrame.add(minField);
+
+        JLabel maxLabel = new JLabel("Maximum Rent:");
+        maxLabel.setBounds(50, 70, 100, 25);
+        rentFrame.add(maxLabel);
+
+        JTextField maxField = new JTextField();
+        maxField.setBounds(160, 70, 100, 25);
+        rentFrame.add(maxField);
+
+        JButton filterButton = new JButton("Filter");
+        filterButton.setBounds(50, 120, 100, 30);
+        filterButton.addActionListener(e -> {
+            try {
+                int min = Integer.parseInt(minField.getText());
+                int max = Integer.parseInt(maxField.getText());
+                
+                if (min > max) {
+                    JOptionPane.showMessageDialog(rentFrame, "Minimum rent cannot be greater than maximum rent!");
+                    return;
+                }
+                
+                List<Accommodation> filtered = new ArrayList<>();
+                for (Accommodation acc : accommodations) {
+                    if (acc.getRent() >= min && acc.getRent() <= max) {
+                        filtered.add(acc);
+                    }
+                }
+                
+                displayAccommodationList(filtered, "Accommodations between Rs" + min + " and Rs" + max);
+                rentFrame.dispose();
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(rentFrame, "Please enter valid numbers for rent!");
+            }
+        });
+        rentFrame.add(filterButton);
+
+        JButton cancelButton = new JButton("Cancel");
+        cancelButton.setBounds(160, 120, 100, 30);
+        cancelButton.addActionListener(e -> rentFrame.dispose());
+        rentFrame.add(cancelButton);
+
+        rentFrame.setVisible(true);
+    }
+
+    private void filterByFacilities() {
+        JFrame facilitiesFrame = new JFrame("Filter by Facilities");
+        facilitiesFrame.setSize(300, 400);
+        facilitiesFrame.setLayout(null);
+
+        JLabel titleLabel = new JLabel("Select Facilities:");
+        titleLabel.setBounds(50, 20, 200, 25);
+        facilitiesFrame.add(titleLabel);
+
+        JCheckBox wifiCheck = new JCheckBox("WiFi");
+        wifiCheck.setBounds(50, 50, 100, 25);
+        facilitiesFrame.add(wifiCheck);
+
+        JCheckBox mealsCheck = new JCheckBox("Meals");
+        mealsCheck.setBounds(50, 80, 100, 25);
+        facilitiesFrame.add(mealsCheck);
+
+        JCheckBox securityCheck = new JCheckBox("Security");
+        securityCheck.setBounds(50, 110, 100, 25);
+        facilitiesFrame.add(securityCheck);
+
+        JCheckBox laundryCheck = new JCheckBox("Laundry");
+        laundryCheck.setBounds(50, 140, 100, 25);
+        facilitiesFrame.add(laundryCheck);
+
+        JCheckBox acCheck = new JCheckBox("AC");
+        acCheck.setBounds(50, 170, 100, 25);
+        facilitiesFrame.add(acCheck);
+
+        JCheckBox geyserCheck = new JCheckBox("Geyser");
+        geyserCheck.setBounds(50, 200, 100, 25);
+        facilitiesFrame.add(geyserCheck);
+
+        JCheckBox kitchenCheck = new JCheckBox("Kitchen");
+        kitchenCheck.setBounds(50, 230, 100, 25);
+        facilitiesFrame.add(kitchenCheck);
+
+        JButton filterButton = new JButton("Filter");
+        filterButton.setBounds(50, 260, 100, 30);
+        filterButton.addActionListener(e -> {
+            List<Accommodation> filtered = new ArrayList<>();
+            for (Accommodation acc : accommodations) {
+                boolean matches = true;
+                
+                if (wifiCheck.isSelected() && !acc.hasWifi()) matches = false;
+                if (mealsCheck.isSelected() && !acc.hasMeals()) matches = false;
+                if (securityCheck.isSelected() && !acc.hasSecurity()) matches = false;
+                if (laundryCheck.isSelected() && !acc.hasLaundry()) matches = false;
+                if (acCheck.isSelected() && !acc.hasAC()) matches = false;
+                if (geyserCheck.isSelected() && !acc.hasGeyser()) matches = false;
+                if (kitchenCheck.isSelected() && !acc.hasKitchen()) matches = false;
+                
+                if (matches) filtered.add(acc);
+            }
+            
+            displayAccommodationList(filtered, "Accommodations with selected facilities");
+            facilitiesFrame.dispose();
+        });
+        facilitiesFrame.add(filterButton);
+
+        JButton cancelButton = new JButton("Cancel");
+        cancelButton.setBounds(160, 260, 100, 30);
+        cancelButton.addActionListener(e -> facilitiesFrame.dispose());
+        facilitiesFrame.add(cancelButton);
+
+        facilitiesFrame.setVisible(true);
+    }
+
+    private void filterByRating() {
+        String input = JOptionPane.showInputDialog(mainFrame != null ? mainFrame : adminFrame, 
+            "Enter minimum rating (1-5):");
+        
+        try {
+            double minRating = Double.parseDouble(input);
+            if (minRating >= 1.0 && minRating <= 5.0) {
+                List<Accommodation> filtered = new ArrayList<>();
+                for (Accommodation acc : accommodations) {
+                    if (acc.getRating() >= minRating) {
+                        filtered.add(acc);
+                    }
+                }
+                displayAccommodationList(filtered, "Accommodations with rating " + minRating + "+");
+            } else {
+                JOptionPane.showMessageDialog(mainFrame != null ? mainFrame : adminFrame, 
+                    "Please enter a rating between 1 and 5.");
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(mainFrame != null ? mainFrame : adminFrame, 
+                "Please enter a valid number.");
+        }
+    }
+
+    private void filterByGender() {
+        String[] options = {"Male", "Female", "Unisex"};
+        String selected = (String) JOptionPane.showInputDialog(
+            mainFrame != null ? mainFrame : adminFrame,
+            "Select gender preference:",
+            "Filter by Gender",
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            options,
+            options[0]);
+        
+        if (selected != null) {
+            List<Accommodation> filtered = new ArrayList<>();
+            for (Accommodation acc : accommodations) {
+                if (acc.getGender().equalsIgnoreCase(selected)) {
+                    filtered.add(acc);
+                }
+            }
+            displayAccommodationList(filtered, selected + " Accommodations");
+        }
+    }
+
+    private void addNewAccommodation() {
+        JFrame addFrame = new JFrame("Add New Accommodation");
+        addFrame.setSize(500, 600);
+        addFrame.setLayout(null);
+
+        JLabel titleLabel = new JLabel("Add New Accommodation");
+        titleLabel.setBounds(50, 20, 300, 30);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        addFrame.add(titleLabel);
+
+        JLabel typeLabel = new JLabel("Accommodation Type:");
+        typeLabel.setBounds(50, 60, 150, 25);
+        addFrame.add(typeLabel);
+
+        String[] types = {"Hostel", "PG", "Flat"};
+        JComboBox<String> typeCombo = new JComboBox<>(types);
+        typeCombo.setBounds(200, 60, 150, 25);
+        addFrame.add(typeCombo);
+
+        JLabel nameLabel = new JLabel("Name:");
+        nameLabel.setBounds(50, 100, 150, 25);
+        addFrame.add(nameLabel);
+
+        JTextField nameField = new JTextField();
+        nameField.setBounds(200, 100, 150, 25);
+        addFrame.add(nameField);
+
+        JLabel locationLabel = new JLabel("Location:");
+        locationLabel.setBounds(50, 140, 150, 25);
+        addFrame.add(locationLabel);
+
+        JTextField locationField = new JTextField();
+        locationField.setBounds(200, 140, 150, 25);
+        addFrame.add(locationField);
+
+        JLabel rentLabel = new JLabel("Rent:");
+        rentLabel.setBounds(50, 180, 150, 25);
+        addFrame.add(rentLabel);
+
+        JTextField rentField = new JTextField();
+        rentField.setBounds(200, 180, 150, 25);
+        addFrame.add(rentField);
+
+        JLabel ratingLabel = new JLabel("Rating (1-5):");
+        ratingLabel.setBounds(50, 220, 150, 25);
+        addFrame.add(ratingLabel);
+
+        JTextField ratingField = new JTextField();
+        ratingField.setBounds(200, 220, 150, 25);
+        addFrame.add(ratingField);
+
+        JLabel genderLabel = new JLabel("Gender:");
+        genderLabel.setBounds(50, 260, 150, 25);
+        addFrame.add(genderLabel);
+
+        String[] genders = {"Male", "Female", "Unisex"};
+        JComboBox<String> genderCombo = new JComboBox<>(genders);
+        genderCombo.setBounds(200, 260, 150, 25);
+        addFrame.add(genderCombo);
+
+        JLabel facilitiesLabel = new JLabel("Facilities:");
+        facilitiesLabel.setBounds(50, 300, 150, 25);
+        addFrame.add(facilitiesLabel);
+
+        JCheckBox wifiCheck = new JCheckBox("WiFi");
+        wifiCheck.setBounds(200, 300, 100, 25);
+        addFrame.add(wifiCheck);
+
+        JCheckBox mealsCheck = new JCheckBox("Meals");
+        mealsCheck.setBounds(200, 330, 100, 25);
+        addFrame.add(mealsCheck);
+
+        JCheckBox securityCheck = new JCheckBox("Security");
+        securityCheck.setBounds(200, 360, 100, 25);
+        addFrame.add(securityCheck);
+
+        JCheckBox laundryCheck = new JCheckBox("Laundry");
+        laundryCheck.setBounds(200, 390, 100, 25);
+        addFrame.add(laundryCheck);
+
+        JCheckBox acCheck = new JCheckBox("AC");
+        acCheck.setBounds(200, 420, 100, 25);
+        addFrame.add(acCheck);
+
+        JCheckBox geyserCheck = new JCheckBox("Geyser");
+        geyserCheck.setBounds(200, 450, 100, 25);
+        addFrame.add(geyserCheck);
+
+        JCheckBox kitchenCheck = new JCheckBox("Kitchen");
+        kitchenCheck.setBounds(200, 480, 100, 25);
+        addFrame.add(kitchenCheck);
+
+        JButton submitButton = new JButton("Submit");
+        submitButton.setBounds(100, 520, 100, 30);
+        submitButton.addActionListener(e -> {
+            try {
+                String type = (String) typeCombo.getSelectedItem();
+                String name = nameField.getText();
+                String location = locationField.getText();
+                int rent = Integer.parseInt(rentField.getText());
+                double rating = Double.parseDouble(ratingField.getText());
+                String gender = (String) genderCombo.getSelectedItem();
+                
+                boolean wifi = wifiCheck.isSelected();
+                boolean meals = mealsCheck.isSelected();
+                boolean security = securityCheck.isSelected();
+                boolean laundry = laundryCheck.isSelected();
+                boolean ac = acCheck.isSelected();
+                boolean geyser = geyserCheck.isSelected();
+                boolean kitchen = kitchenCheck.isSelected();
+                
+                // Create the appropriate accommodation type
+                Accommodation newAcc;
+                if (type.equals("Hostel")) {
+                    int roomSharing = Integer.parseInt(JOptionPane.showInputDialog(addFrame, "Enter room sharing (number of people):"));
+                    String curfew = JOptionPane.showInputDialog(addFrame, "Enter curfew time (or 'None'):");
+                    
+                    boolean studyRoom = JOptionPane.showConfirmDialog(addFrame, "Has study room?", "Study Room", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
+                    boolean sportsFacility = JOptionPane.showConfirmDialog(addFrame, "Has sports facility?", "Sports Facility", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
+                    
+                    newAcc = new Hostel(name, location, rent, wifi, meals, security, rating,
+                                      roomSharing, laundry, false, ac, geyser, kitchen,
+                                      curfew, gender, studyRoom, sportsFacility);
+                } 
+                else if (type.equals("PG")) {
+                    int roomSharing = Integer.parseInt(JOptionPane.showInputDialog(addFrame, "Enter room sharing (number of people):"));
+                    String curfew = JOptionPane.showInputDialog(addFrame, "Enter curfew time (or 'None'):");
+                    
+                    boolean parking = JOptionPane.showConfirmDialog(addFrame, "Has parking?", "Parking", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
+                    boolean powerBackup = JOptionPane.showConfirmDialog(addFrame, "Has power backup?", "Power Backup", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
+                    
+                    newAcc = new PG(name, location, rent, wifi, meals, security, rating,
+                                  roomSharing, laundry, false, ac, geyser, kitchen,
+                                  curfew, gender, parking, powerBackup);
+                } 
+                else { // Flat
+                    boolean furnished = JOptionPane.showConfirmDialog(addFrame, "Is furnished?", "Furnished", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
+                    boolean maintenance = JOptionPane.showConfirmDialog(addFrame, "Maintenance included?", "Maintenance", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
+                    
+                    newAcc = new Flat(name, location, rent, wifi, meals, security, rating,
+                                    laundry, false, ac, geyser, kitchen, gender,
+                                    furnished, maintenance);
+                }
+                
+                accommodations.add(newAcc);
+                locationMap.computeIfAbsent(location, k -> new ArrayList<>()).add(newAcc);
+                typeMap.computeIfAbsent(type, k -> new ArrayList<>()).add(newAcc);
+                saveAccommodationToDatabase(newAcc);
+                
+                JOptionPane.showMessageDialog(addFrame, "Accommodation added successfully!");
+                addFrame.dispose();
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(addFrame, "Please enter valid numbers for rent and rating!");
+            }
+        });
+        addFrame.add(submitButton);
+
+        JButton cancelButton = new JButton("Cancel");
+        cancelButton.setBounds(220, 520, 100, 30);
+        cancelButton.addActionListener(e -> addFrame.dispose());
+        addFrame.add(cancelButton);
+
+        addFrame.setVisible(true);
+    }
+
+    private void updateAccommodation() {
+        if (accommodations.isEmpty()) {
+            JOptionPane.showMessageDialog(adminFrame, "No accommodations available to update.");
+            return;
+        }
+        
+        String[] accNames = new String[accommodations.size()];
+        for (int i = 0; i < accommodations.size(); i++) {
+            accNames[i] = accommodations.get(i).getName() + " (" + accommodations.get(i).getType() + ")";
+        }
+        
+        String selected = (String) JOptionPane.showInputDialog(
+            adminFrame,
+            "Select accommodation to update:",
+            "Update Accommodation",
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            accNames,
+            accNames[0]);
+        
+        if (selected == null) return;
+        
+        int index = -1;
+        for (int i = 0; i < accNames.length; i++) {
+            if (accNames[i].equals(selected)) {
+                index = i;
+                break;
+            }
+        }
+        
+        if (index == -1) return;
+        
+        Accommodation acc = accommodations.get(index);
+        
+        String[] options = {"Name", "Location", "Rent", "Rating", "Facilities", "Cancel"};
+        int choice = JOptionPane.showOptionDialog(
+            adminFrame,
+            "Select field to update for " + acc.getName() + ":",
+            "Update Field",
+            JOptionPane.DEFAULT_OPTION,
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            options,
+            options[0]);
+        
+        if (choice == 5 || choice == -1) return;
+        
+        switch (choice) {
+            case 0: // Name
+                String newName = JOptionPane.showInputDialog(adminFrame, "Enter new name:", acc.getName());
+                if (newName != null && !newName.isEmpty()) {
+                    accommodations.set(index, createUpdatedAccommodation(acc, "name", newName));
+                    updateAccommodationInDatabase(accommodations.get(index));
+                    JOptionPane.showMessageDialog(adminFrame, "Name updated successfully!");
+                }
+                break;
+            case 1: // Location
+                String newLocation = JOptionPane.showInputDialog(adminFrame, "Enter new location:", acc.getLocation());
+                if (newLocation != null && !newLocation.isEmpty()) {
+                    accommodations.set(index, createUpdatedAccommodation(acc, "location", newLocation));
+                    updateAccommodationInDatabase(accommodations.get(index));
+                    JOptionPane.showMessageDialog(adminFrame, "Location updated successfully!");
+                }
+                break;
+            case 2: // Rent
+                String rentStr = JOptionPane.showInputDialog(adminFrame, "Enter new rent:", acc.getRent());
+                try {
+                    int newRent = Integer.parseInt(rentStr);
+                    accommodations.set(index, createUpdatedAccommodation(acc, "rent", newRent));
+                    updateAccommodationInDatabase(accommodations.get(index));
+                    JOptionPane.showMessageDialog(adminFrame, "Rent updated successfully!");
+                } catch (NumberFormatException e) {
+                    JOptionPane.showMessageDialog(adminFrame, "Please enter a valid number for rent!");
+                }
+                break;
+            case 3: // Rating
+                String ratingStr = JOptionPane.showInputDialog(adminFrame, "Enter new rating (1-5):", acc.getRating());
+                try {
+                    double newRating = Double.parseDouble(ratingStr);
+                    if (newRating >= 1.0 && newRating <= 5.0) {
+                        accommodations.set(index, createUpdatedAccommodation(acc, "rating", newRating));
+                        updateAccommodationInDatabase(accommodations.get(index));
+                        JOptionPane.showMessageDialog(adminFrame, "Rating updated successfully!");
+                    } else {
+                        JOptionPane.showMessageDialog(adminFrame, "Please enter a rating between 1 and 5!");
+                    }
+                } catch (NumberFormatException e) {
+                    JOptionPane.showMessageDialog(adminFrame, "Please enter a valid number for rating!");
+                }
+                break;
+            case 4: // Facilities
+                updateFacilities(index);
+                break;
+        }
+    }
+    
+    private void updateAccommodationInDatabase(Accommodation acc) {
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                 "UPDATE accommodations SET name = ?, location = ?, rent = ?, rating = ?, " +
+                 "wifi = ?, meals = ?, security = ?, laundry = ?, ac = ?, geyser = ?, kitchen = ? " +
+                 "WHERE name = ? AND type = ? AND location = ?")) {
+            
+            stmt.setString(1, acc.getName());
+            stmt.setString(2, acc.getLocation());
+            stmt.setInt(3, acc.getRent());
+            stmt.setDouble(4, acc.getRating());
+            stmt.setBoolean(5, acc.hasWifi());
+            stmt.setBoolean(6, acc.hasMeals());
+            stmt.setBoolean(7, acc.hasSecurity());
+            stmt.setBoolean(8, acc.hasLaundry());
+            stmt.setBoolean(9, acc.hasAC());
+            stmt.setBoolean(10, acc.hasGeyser());
+            stmt.setBoolean(11, acc.hasKitchen());
+            
+            // Original values for WHERE clause
+            stmt.setString(12, acc.getName());
+            stmt.setString(13, acc.getType());
+            stmt.setString(14, acc.getLocation());
+            
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void deleteAccommodation() {
+        if (accommodations.isEmpty()) {
+            JOptionPane.showMessageDialog(adminFrame, "No accommodations available to delete.");
+            return;
+        }
+        
+        String[] accNames = new String[accommodations.size()];
+        for (int i = 0; i < accommodations.size(); i++) {
+            accNames[i] = accommodations.get(i).getName() + " (" + accommodations.get(i).getType() + ")";
+        }
+        
+        String selected = (String) JOptionPane.showInputDialog(
+            adminFrame,
+            "Select accommodation to delete:",
+            "Delete Accommodation",
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            accNames,
+            accNames[0]);
+        
+        if (selected == null) return;
+        
+        int index = -1;
+        for (int i = 0; i < accNames.length; i++) {
+            if (accNames[i].equals(selected)) {
+                index = i;
+                break;
+            }
+        }
+        
+        if (index == -1) return;
+        
+        Accommodation acc = accommodations.get(index);
+        
+        int confirm = JOptionPane.showConfirmDialog(
+            adminFrame,
+            "Are you sure you want to delete:\n" + acc.getName() + " (" + acc.getType() + ")",
+            "Confirm Deletion",
+            JOptionPane.YES_NO_OPTION);
+        
+        if (confirm == JOptionPane.YES_OPTION) {
+            // Remove from database first
+            deleteAccommodationFromDatabase(acc);
+            
+            // Remove from main list
+            Accommodation removed = accommodations.remove(index);
+            // Remove from location map
+            locationMap.get(removed.getLocation()).remove(removed);
+            // Remove from type map
+            typeMap.get(removed.getType()).remove(removed);
+            
+            JOptionPane.showMessageDialog(adminFrame, "Accommodation deleted successfully!");
+        }
+    }
+    
+    private void deleteAccommodationFromDatabase(Accommodation acc) {
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                 "DELETE FROM accommodations WHERE name = ? AND type = ? AND location = ?")) {
+            
+            stmt.setString(1, acc.getName());
+            stmt.setString(2, acc.getType());
+            stmt.setString(3, acc.getLocation());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Accommodation createUpdatedAccommodation(Accommodation original, String field, Object value) {
+        if (original instanceof Hostel) {
+            Hostel h = (Hostel)original;
+            return new Hostel(
+                field.equals("name") ? (String)value : h.getName(),
+                field.equals("location") ? (String)value : h.getLocation(),
+                field.equals("rent") ? (Integer)value : h.getRent(),
+                h.hasWifi(), h.hasMeals(), h.hasSecurity(),
+                field.equals("rating") ? (Double)value : h.getRating(),
+                h.getRoomSharing(), h.hasLaundry(), h.hasMess(),
+                h.hasAC(), h.hasGeyser(), h.hasKitchen(),
+                h.getCurfew(), h.getGender(),
+                h.hasStudyRoom(), h.hasSportsFacility()
+            );
+        } 
+        else if (original instanceof PG) {
+            PG pg = (PG)original;
+            return new PG(
+                field.equals("name") ? (String)value : pg.getName(),
+                field.equals("location") ? (String)value : pg.getLocation(),
+                field.equals("rent") ? (Integer)value : pg.getRent(),
+                pg.hasWifi(), pg.hasMeals(), pg.hasSecurity(),
+                field.equals("rating") ? (Double)value : pg.getRating(),
+                pg.getRoomSharing(), pg.hasLaundry(), pg.hasMess(),
+                pg.hasAC(), pg.hasGeyser(), pg.hasKitchen(),
+                pg.getCurfew(), pg.getGender(),
+                pg.hasParking(), pg.hasPowerBackup()
+            );
+        } 
+        else { // Flat
+            Flat f = (Flat)original;
+            return new Flat(
+                field.equals("name") ? (String)value : f.getName(),
+                field.equals("location") ? (String)value : f.getLocation(),
+                field.equals("rent") ? (Integer)value : f.getRent(),
+                f.hasWifi(), f.hasMeals(), f.hasSecurity(),
+                field.equals("rating") ? (Double)value : f.getRating(),
+                f.hasLaundry(), f.hasMess(), f.hasAC(),
+                f.hasGeyser(), f.hasKitchen(), f.getGender(),
+                f.isFurnished(), f.isMaintenanceIncluded()
+            );
+        }
+    }
+
+    private void updateFacilities(Integer index) {
+        Accommodation acc = accommodations.get(index);
+        
+        JFrame facilitiesFrame = new JFrame("Update Facilities");
+        facilitiesFrame.setSize(300, 300);
+        facilitiesFrame.setLayout(null);
+
+        JLabel titleLabel = new JLabel("Update Facilities for " + acc.getName());
+        titleLabel.setBounds(50, 20, 250, 25);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        facilitiesFrame.add(titleLabel);
+
+        JCheckBox wifiCheck = new JCheckBox("WiFi", acc.hasWifi());
+        wifiCheck.setBounds(50, 60, 100, 25);
+        facilitiesFrame.add(wifiCheck);
+
+        JCheckBox mealsCheck = new JCheckBox("Meals", acc.hasMeals());
+        mealsCheck.setBounds(50, 90, 100, 25);
+        facilitiesFrame.add(mealsCheck);
+
+        JCheckBox securityCheck = new JCheckBox("Security", acc.hasSecurity());
+        securityCheck.setBounds(50, 120, 100, 25);
+        facilitiesFrame.add(securityCheck);
+
+        JCheckBox laundryCheck = new JCheckBox("Laundry", acc.hasLaundry());
+        laundryCheck.setBounds(50, 150, 100, 25);
+        facilitiesFrame.add(laundryCheck);
+
+        JCheckBox acCheck = new JCheckBox("AC", acc.hasAC());
+        acCheck.setBounds(50, 180, 100, 25);
+        facilitiesFrame.add(acCheck);
+
+        JCheckBox geyserCheck = new JCheckBox("Geyser", acc.hasGeyser());
+        geyserCheck.setBounds(50, 210, 100, 25);
+        facilitiesFrame.add(geyserCheck);
+
+        JCheckBox kitchenCheck = new JCheckBox("Kitchen", acc.hasKitchen());
+        kitchenCheck.setBounds(50, 240, 100, 25);
+        facilitiesFrame.add(kitchenCheck);
+
+        JButton updateButton = new JButton("Update");
+        updateButton.setBounds(50, 280, 100, 30);
+        updateButton.addActionListener(e -> {
+            accommodations.set(index, toggleFacility(acc, 
+                wifiCheck.isSelected(), mealsCheck.isSelected(), 
+                securityCheck.isSelected(), laundryCheck.isSelected(),
+                acCheck.isSelected(), geyserCheck.isSelected(), 
+                kitchenCheck.isSelected()));
+            updateAccommodationInDatabase(accommodations.get(index));
+            JOptionPane.showMessageDialog(facilitiesFrame, "Facilities updated successfully!");
+            facilitiesFrame.dispose();
+        });
+        facilitiesFrame.add(updateButton);
+
+        JButton cancelButton = new JButton("Cancel");
+        cancelButton.setBounds(160, 280, 100, 30);
+        cancelButton.addActionListener(e -> facilitiesFrame.dispose());
+        facilitiesFrame.add(cancelButton);
+
+        facilitiesFrame.setVisible(true);
+    }
+
+    private Accommodation toggleFacility(Accommodation original, 
+                                       boolean wifi, boolean meals, boolean security,
+                                       boolean laundry, boolean ac, boolean geyser, 
+                                       boolean kitchen) {
+        if (original instanceof Hostel) {
+            Hostel h = (Hostel)original;
+            return new Hostel(
+                h.getName(), h.getLocation(), h.getRent(),
+                wifi, meals, security,
+                h.getRating(), h.getRoomSharing(),
+                laundry, h.hasMess(), ac, geyser, kitchen,
+                h.getCurfew(), h.getGender(),
+                h.hasStudyRoom(), h.hasSportsFacility()
+            );
+        } 
+        else if (original instanceof PG) {
+            PG pg = (PG)original;
+            return new PG(
+                pg.getName(), pg.getLocation(), pg.getRent(),
+                wifi, meals, security,
+                pg.getRating(), pg.getRoomSharing(),
+                laundry, pg.hasMess(), ac, geyser, kitchen,
+                pg.getCurfew(), pg.getGender(),
+                pg.hasParking(), pg.hasPowerBackup()
+            );
+        } 
+        else { // Flat
+            Flat f = (Flat)original;
+            return new Flat(
+                f.getName(), f.getLocation(), f.getRent(),
+                wifi, meals, security,
+                f.getRating(),
+                laundry, f.hasMess(), ac, geyser, kitchen,
+                f.getGender(),
+                f.isFurnished(), f.isMaintenanceIncluded()
+            );
+        }
+    }
+
+    private void viewAllBookings() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== All Bookings ===\n");
+        
+        if (bookings.isEmpty()) {
+            sb.append("No bookings found.\n");
+        } else {
+            for (Booking booking : bookings) {
+                sb.append("\nBooking ID: ").append(booking.getId()).append("\n");
+                sb.append("Customer: ").append(booking.getCustomerName()).append("\n");
+                sb.append("Contact: ").append(booking.getContact()).append("\n");
+                sb.append("University: ").append(booking.getUniversity()).append("\n");
+                sb.append("Status: ").append(booking.isConfirmed() ? "Confirmed" : "Pending").append("\n");
+                sb.append("Accommodation: ").append(booking.getAccommodation().getName())
+                  .append(" (").append(booking.getAccommodation().getType()).append(")\n");
+            }
+        }
+        
+        outputArea.setText(sb.toString());
+    }
+
+    private void confirmBooking() {
+        if (bookings.isEmpty()) {
+            JOptionPane.showMessageDialog(adminFrame, "No bookings found.");
+            return;
+        }
+        
+        String[] bookingIds = new String[bookings.size()];
+        for (int i = 0; i < bookings.size(); i++) {
+            bookingIds[i] = "ID: " + bookings.get(i).getId() + " - " + 
+                           bookings.get(i).getCustomerName() + " (" + 
+                           bookings.get(i).getAccommodation().getName() + ")";
+        }
+        
+        String selected = (String) JOptionPane.showInputDialog(
+            adminFrame,
+            "Select booking to confirm:",
+            "Confirm Booking",
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            bookingIds,
+            bookingIds[0]);
+        
+        if (selected == null) return;
+        
+        int index = -1;
+        for (int i = 0; i < bookingIds.length; i++) {
+            if (bookingIds[i].equals(selected)) {
+                index = i;
+                break;
+            }
+        }
+        
+        if (index == -1) return;
+        
+        Booking booking = bookings.get(index);
+        booking.setConfirmed(true);
+        updateBookingConfirmation(booking);
+        
+        JOptionPane.showMessageDialog(adminFrame, 
+            "Booking ID " + booking.getId() + " confirmed successfully!");
+    }
+    
+    private void updateBookingConfirmation(Booking booking) {
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                 "UPDATE bookings SET confirmed = ? WHERE id = ?")) {
+            
+            stmt.setBoolean(1, booking.isConfirmed());
+            stmt.setInt(2, booking.getId());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
