@@ -1,0 +1,54 @@
+Name,Type,Location,Rent,WiFi,Meals,Security,Rating,RoomSharing,Laundry,Mess,AC,Geyser,Kitchen,Curfew,Gender,Parking,PowerBackup,StudyRoom,SportsFacility,Furnished,MaintenanceIncluded
+Maple Residency,PG,Prem Nagar,8500,Yes,Yes,Yes,4.3,3,Yes,Yes,No,Yes,No,10:00 PM,Unisex,Yes,No,No,No,No,No
+Evergreen PG,PG,Bhidoli,7500,No,No,No,4.1,2,No,No,No,No,No,None,Male,No,No,No,No,No,No
+Oakwood Residency,PG,Kandoli,9200,Yes,Yes,Yes,4.7,2,Yes,Yes,Yes,Yes,No,9:30 PM,Female,Yes,Yes,No,No,No,No
+Green Valley,PG,Prem Nagar,7800,Yes,No,No,4,3,No,No,No,Yes,No,None,Unisex,No,Yes,No,No,No,No
+Sunrise PG,PG,Bhidoli,8100,Yes,Yes,Yes,4.2,2,No,Yes,No,Yes,No,10:00 PM,Female,Yes,No,No,No,No,No
+Elite Stay,PG,Prem Nagar,9500,Yes,Yes,Yes,4.5,1,Yes,Yes,Yes,Yes,Yes,9:30 PM,Male,Yes,Yes,No,No,No,No
+Tranquil Nest,PG,Prem Nagar,8800,No,No,Yes,3.9,2,No,No,No,Yes,No,None,Unisex,No,No,No,No,No,No
+Harmony PG,PG,Bhidoli,7900,No,No,No,3.8,3,No,No,No,No,No,None,Female,No,No,No,No,No,No
+Silver Springs,PG,Kandoli,8300,Yes,Yes,No,4,2,Yes,Yes,No,Yes,No,10:00 PM,Unisex,Yes,Yes,No,No,No,No
+Urban Comfort,PG,Bhidoli,8800,No,No,No,3.9,2,No,No,Yes,No,No,None,Male,No,Yes,No,No,No,No
+Aspire,PG,Prem Nagar,8000,Yes,Yes,Yes,4.3,2,Yes,Yes,No,Yes,No,9:30 PM,Unisex,Yes,No,No,No,No,No
+Serene Stay,PG,Prem Nagar,8700,Yes,Yes,No,3.7,2,No,No,No,No,No,None,Female,No,No,No,No,No,No
+Hilltop,PG,Kandoli,8200,No,Yes,No,3.8,3,No,Yes,No,No,No,None,Male,No,Yes,No,No,No,No
+Riverside,PG,Kandoli,9100,Yes,No,No,4.1,3,Yes,No,No,No,No,10:00 PM,Unisex,Yes,No,No,No,No,No
+Amber Residency,PG,Kandoli,9800,Yes,Yes,Yes,4.6,1,Yes,Yes,Yes,Yes,Yes,9:30 PM,Female,Yes,Yes,No,No,No,No
+Himalayan View,Hostel,Kandoli,6000,Yes,No,Yes,3.9,4,No,Yes,No,Yes,No,10:00 PM,Male,No,No,Yes,No,No,No
+Green Valley,Hostel,Prem Nagar,7000,No,No,Yes,4.1,3,Yes,No,No,No,No,9:30 PM,Female,No,No,No,Yes,No,No
+Shivalik Boys,Hostel,Kandoli,6500,Yes,No,No,3.8,4,No,Yes,No,No,No,None,Male,No,No,Yes,No,No,No
+Riverside,Hostel,Bhidoli,7200,No,Yes,No,4,3,No,No,No,Yes,No,10:00 PM,Unisex,No,No,No,Yes,No,No
+Golden Nest,Hostel,Kandoli,6800,Yes,No,Yes,4.2,4,Yes,Yes,No,Yes,No,9:30 PM,Female,No,No,Yes,Yes,No,No
+Maple Residency,Hostel,Bhidoli,7100,No,Yes,Yes,3.7,4,Yes,Yes,No,No,No,None,Male,No,No,No,No,No,No
+Oakwood Boys,Hostel,Prem Nagar,7400,No,Yes,Yes,4.3,4,No,Yes,No,Yes,No,10:00 PM,Male,No,No,Yes,No,No,No
+Mountain Breeze,Hostel,Bhidoli,6900,No,Yes,Yes,3.9,4,No,Yes,No,No,No,9:30 PM,Female,No,No,No,Yes,No,No
+Elite Boys,Hostel,Bhidoli,7300,Yes,No,Yes,4,4,Yes,No,No,Yes,No,None,Male,No,No,Yes,No,No,No
+Tranquil Stay,Hostel,Prem Nagar,7600,Yes,Yes,No,4.1,4,No,Yes,No,No,No,10:00 PM,Female,No,No,No,Yes,No,No
+Silver Crest,Hostel,Bhidoli,7700,Yes,No,Yes,4.2,4,Yes,No,No,Yes,No,9:30 PM,Unisex,No,No,Yes,Yes,No,No
+Urban Haven,Hostel,Bhidoli,6700,No,Yes,No,3.8,4,No,No,No,No,No,None,Male,No,No,No,No,No,No
+Aspire,Hostel,Kandoli,7500,Yes,No,Yes,3.7,4,No,Yes,No,Yes,No,10:00 PM,Female,No,No,Yes,No,No,No
+Serene Girls,Hostel,Kandoli,7900,No,Yes,No,4,4,Yes,Yes,No,No,No,9:30 PM,Female,No,No,No,Yes,No,No
+Hilltop Boys,Hostel,Bhidoli,7200,No,Yes,Yes,4.1,4,No,Yes,No,Yes,No,None,Male,No,No,Yes,No,No,No
+Cedarwood Girls,Hostel,Prem Nagar,6800,Yes,Yes,No,4.3,4,No,Yes,No,No,No,10:00 PM,Female,No,No,No,Yes,No,No
+Amber,Hostel,Bhidoli,7100,Yes,Yes,No,3.9,4,Yes,Yes,No,No,No,9:30 PM,Unisex,No,No,No,No,No,No
+Blue Haven,Hostel,Kandoli,7400,Yes,No,No,4,4,No,No,No,Yes,No,None,Male,No,No,Yes,No,No,No
+Himalayan View,Flat,Kandoli,12000,Yes,No,No,4.4,1,No,No,Yes,Yes,Yes,None,Unisex,No,No,No,No,Yes,No
+Riverside,Flat,Bhidoli,11500,No,No,No,4.2,1,No,No,Yes,No,Yes,None,Male,No,No,No,No,No,Yes
+Green Valley,Flat,Bhidoli,12500,No,No,Yes,4.5,1,No,No,Yes,Yes,Yes,None,Female,No,No,No,No,Yes,Yes
+Shivalik Heights,Flat,Kandoli,13500,Yes,No,Yes,4.7,1,No,No,Yes,Yes,Yes,None,Unisex,No,No,No,No,Yes,Yes
+Oakwood,Flat,Prem Nagar,14000,Yes,No,No,4.3,1,No,No,Yes,Yes,Yes,None,Female,No,No,No,No,Yes,No
+Mountain Breeze,Flat,Kandoli,13000,No,No,Yes,4.1,1,No,No,Yes,No,Yes,None,Male,No,No,No,No,No,Yes
+Evergreen,Flat,Prem Nagar,11000,Yes,No,No,4,1,No,No,No,Yes,Yes,None,Unisex,No,No,No,No,Yes,No
+Maple Heights,Flat,Bhidoli,14500,Yes,No,No,4.6,1,No,No,Yes,Yes,Yes,None,Female,No,No,No,No,Yes,Yes
+Blue Haven,Flat,Prem Nagar,15000,No,No,Yes,4.4,1,No,No,Yes,Yes,Yes,None,Male,No,No,No,No,Yes,No
+Urban Nest,Flat,Bhidoli,10500,Yes,No,No,3.9,1,No,No,No,No,Yes,None,Unisex,No,No,No,No,No,No
+Tranquil,Flat,Prem Nagar,16000,No,No,No,4.5,1,No,No,Yes,Yes,Yes,None,Female,No,No,No,No,Yes,Yes
+Golden Crest,Flat,Prem Nagar,12500,No,No,Yes,3.8,1,No,No,No,Yes,Yes,None,Male,No,No,No,No,No,Yes
+Silver Leaf,Flat,Prem Nagar,15500,Yes,No,Yes,4.7,1,No,No,Yes,Yes,Yes,None,Unisex,No,No,No,No,Yes,Yes
+Elite Heights,Flat,Kandoli,16500,Yes,No,No,4.2,1,No,No,Yes,Yes,Yes,None,Female,No,No,No,No,Yes,No
+Aspire,Flat,Bhidoli,11500,No,No,No,4,1,No,No,No,No,Yes,None,Male,No,No,No,No,No,No
+Serene View,Flat,Kandoli,12000,No,No,Yes,4.3,1,No,No,Yes,Yes,Yes,None,Female,No,No,No,No,Yes,Yes
+Hilltop,Flat,Prem Nagar,13000,No,No,No,4.1,1,No,No,Yes,No,Yes,None,Unisex,No,No,No,No,No,Yes
+Amber,Flat,Prem Nagar,14000,Yes,No,No,4.6,1,No,No,Yes,Yes,Yes,None,Male,No,No,No,No,Yes,No
+Cedarwood,Flat,Kandoli,13500,Yes,No,Yes,4.4,1,No,No,Yes,Yes,Yes,None,Female,No,No,No,No,Yes,Yes
+Royal Nest,Flat,Bhidoli,11000,No,No,Yes,4.5,1,No,No,No,Yes,Yes,None,Unisex,No,No,No,No,No,Yes
